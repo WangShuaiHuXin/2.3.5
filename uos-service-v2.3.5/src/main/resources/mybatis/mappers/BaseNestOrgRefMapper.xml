@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.BaseNestOrgRefMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.BaseNestOrgRefEntity">
+        <result column="id" property="id" />
+        <result column="nest_id" property="nestId" />
+        <result column="org_code" property="orgCode" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        nest_id,
+        org_code,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+    <update id="deleteByNestId">
+        update base_nest_org_ref
+        set deleted = 1, modifier_id=#{accountId}
+        where deleted = 0 and nest_id=#{nestId}
+    </update>
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.BaseNestOrgRefEntity">
+        INSERT INTO base_nest_org_ref(nest_id, org_code, created_time, creator_id, modifier_id)
+        values
+        <foreach collection="entityList" item="item" open="" separator="," close="">
+            (#{item.nestId}, #{item.orgCode}, #{item.createdTime}, #{item.creatorId}, #{item.modifierId})
+        </foreach>
+    </insert>
+
+    <update id="deleteByNestIdAndOrgCodeList">
+        update base_nest_org_ref
+        set deleted = 1, modifier_id=#{accountId}
+        where deleted = 0 and nest_id=#{nestId} and org_code in
+            <foreach collection="orgCodeList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    </update>
+</mapper>

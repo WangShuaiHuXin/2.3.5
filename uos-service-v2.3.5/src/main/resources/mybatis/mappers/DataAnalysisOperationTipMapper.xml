@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisOperationTipMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataAnalysisOperationTipEntity" >
+        <result column="id" property="id" />
+        <result column="tip" property="tip" />
+        <result column="creator_id" property="creatorId" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        tip,
+        creator_id,
+        created_time,
+        modified_time,
+        deleted
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisOperationTipEntity">
+        INSERT INTO data_analysis_operation_tip
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != tip and '' != tip">
+                tip,
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                creator_id,
+            </if>
+            <if test="null != createdTime and '' != createdTime">
+                created_time,
+            </if>
+            <if test="null != modifiedTime and '' != modifiedTime">
+                modified_time,
+            </if>
+            <if test="null != deleted and '' != deleted">
+                deleted
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="null != tip and '' != tip">
+                #{tip},
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                #{creatorId},
+            </if>
+            <if test="null != createdTime and '' != createdTime">
+                #{createdTime},
+            </if>
+            <if test="null != modifiedTime and '' != modifiedTime">
+                #{modifiedTime},
+            </if>
+            <if test="null != deleted and '' != deleted">
+                #{deleted}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisOperationTipEntity">
+        UPDATE data_analysis_operation_tip
+        <set>
+            <if test="null != tip ">tip = #{tip},</if>
+            <if test="null != creatorId and '' != creatorId">creator_id = #{creatorId},</if>
+            <if test="null != createdTime and '' != createdTime">created_time = #{createdTime},</if>
+            <if test="null != modifiedTime and '' != modifiedTime">modified_time = #{modifiedTime},</if>
+            <if test="null != deleted and '' != deleted">deleted = #{deleted}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <select id="query" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM data_analysis_operation_tip
+        WHERE creator_id = #{creatorId}
+    </select>
+
+
+</mapper>

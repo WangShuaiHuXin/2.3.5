@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.SysTagMapper">
+    <select id="getAllTagListByUnitId" resultType="com.imapcloud.nest.model.SysTagEntity">
+        SELECT st.* FROM sys_tag st
+        WHERE 1=1
+        <if test="orgCode != null and orgCode !=''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND st.org_code LIKE #{orgCodeLike}
+        </if>
+    </select>
+
+    <select id="getTagIds" resultType="java.lang.Integer">
+        select gr.tag_id, FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted != 1
+        LEFT JOIN station_infrared_record t3 ON t3.photo_id = t1.id AND t3.deleted != 1
+        WHERE t1.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+        <if test="type != null">
+            and pr.type = #{type}
+        </if>
+        <if test="defectStatus != null and defectStatus == 0">
+            AND (t2.status = #{defectStatus} or t2.status is null)
+        </if>
+        <if test="defectStatus != null and defectStatus != 0">
+            AND t2.status = #{defectStatus}
+        </if>
+        <if test="startTime == null || startTime == ''">
+            AND DATE_FORMAT(t1.create_time,'%Y-%m') = DATE_FORMAT(SYSDATE(),'%Y-%m')
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and t1.create_time between #{startTime} and #{endTime}
+        </if>
+    </select>
+
+    <select id="getTagUseNum" resultType="integer">
+        SELECT mp.num + fi.num AS num
+        FROM
+        (SELECT COUNT(mp.id) AS num
+        FROM mission_photo mp
+        LEFT JOIN mission_photo_tag_rel pt ON pt.mission_photo_id = mp.id
+        WHERE mp.deleted = 0 AND pt.tag_id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ) mp,
+        (SELECT COUNT(id) AS num FROM file_info WHERE type = 3 AND deleted = 0 AND tag_id = #{tagId}) fi
+    </select>
+    <select id="getListByTagId" resultType="com.imapcloud.nest.model.SysTaskTagEntity">
+        SELECT st.* FROM `sys_task_tag` st,task t where st.task_id = t.id and t.data_type is null and t.deleted = 0 and
+        st.deleted = 0
+        <if test="tagId != null and tagId != ''">
+            and st.tag_id=#{tagId}
+        </if>
+        <if test="nestId != null and nestId != ''">
+            and t.nest_id = #{nestId}
+        </if>
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t.org_code LIKE #{orgCodeLike}
+        </if>
+    </select>
+    <select id="selectMissionByType" resultType="java.lang.Integer">
+        SELECT tt.tag_id
+        FROM mission m,
+             mission_records mr,
+             (
+                 SELECT t.id,
+                        st.id AS tag_id
+                 FROM task t,
+                      sys_task_tag stt,
+                      sys_tag st
+                 WHERE t.id = stt.task_id
+                   AND t.deleted = 0
+                   AND stt.tag_id = st.id
+                   AND stt.deleted = 0
+                   AND t.data_type = #{data_type}
+             ) tt
+        WHERE m.id = mr.mission_id
+          AND m.task_id = tt.id
+          AND m.deleted = 0
+          AND mr.deleted = 0
+    </select>
+
+    <select id="batchSelectByTaskIds" parameterType="list" resultType="com.imapcloud.nest.pojo.dto.TaskTagDTO">
+        SELECT
+        st.name tagName,
+        stt.task_id taskId
+        FROM
+        sys_task_tag stt,
+        sys_tag st
+        WHERE
+        stt.tag_id = st.id
+        AND stt.deleted = 0
+        AND stt.task_id in
+        <foreach collection="taskIdList" item="taskId" separator="," open="(" close=")">
+            #{taskId}
+        </foreach>
+    </select>
+
+</mapper>

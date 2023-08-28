@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerMeterFlightDetailDefectMapper">
+
+    <sql id="tableName">power_meter_flight_detail_defect</sql>
+
+    <insert id="batchSave" parameterType="com.imapcloud.nest.v2.dao.entity.PowerMeterFlightDetailDefectEntity">
+        INSERT INTO power_meter_flight_detail_defect
+        (detail_id, detail_name, data_id, photo_id, photo_name, picture_url
+        , thumbnail_url, device_state, defect_state, verification_state
+        , task_state, reason, shooting_time, org_code, pms_id, area_layer_id
+        , area_layer_name, sub_area_layer_id, sub_area_layer_name, unit_layer_id
+        , unit_layer_name, device_layer_id, device_layer_name, component_id
+        , component_name, waypoint_id, creator_id, modifier_id, equipment_name)
+        values
+        <foreach collection="list" item="entity" separator=",">
+            (
+            #{entity.detailId},#{entity.detailName},#{entity.dataId},#{entity.photoId},#{entity.photoName}
+            ,#{entity.pictureUrl}
+            ,#{entity.thumbnailUrl},#{entity.deviceState},#{entity.defectState},#{entity.verificationState}
+            ,#{entity.taskState},#{entity.reason},#{entity.shootingTime},#{entity.orgCode},#{entity.pmsId}
+            ,#{entity.areaLayerId} ,#{entity.areaLayerName},#{entity.subAreaLayerId},#{entity.subAreaLayerName}
+            ,#{entity.unitLayerId} ,#{entity.unitLayerName},#{entity.deviceLayerId},#{entity.deviceLayerName}
+            ,#{entity.componentId} ,#{entity.componentName}, #{entity.waypointId}, #{entity.creatorId}
+            , #{entity.modifierId}, #{entity.equipmentName}
+            )
+        </foreach>
+    </insert>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(1)
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.PowerMeterFlightDetailDefectEntity">
+        select *
+        from
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+    <sql id="whereCondition">
+        AND t0.data_id = #{criteria.dataId}
+        <if test="criteria.deviceState != null">
+            AND t0.device_state = #{criteria.deviceState}
+        </if>
+        <if test="criteria.verificationStatus != null">
+            AND t0.verification_state=#{criteria.verificationStatus}
+        </if>
+        <if test="criteria.defectState != null">
+            AND t0.defect_state=#{criteria.defectState}
+        </if>
+        <if test="criteria.detailIds !=null and criteria.detailIds.size>0">
+            AND t0.detail_id IN
+            <foreach collection="criteria.detailIds" item="bean" open="(" close=")" separator=",">
+                #{bean}
+            </foreach>
+        </if>
+    </sql>
+
+    <sql id="orderCondition">
+        ORDER BY t0.component_name,id DESC
+    </sql>
+
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <select id="statistics"
+            resultType="com.imapcloud.nest.v2.dao.po.out.PowerMeterFlightDetailDefectOutPO$StatisticsOutPO">
+        SELECT device_state deviceState,COUNT(*) num FROM
+        <include refid="tableName"/>
+        WHERE deleted=0 and data_id = #{dataId}
+        GROUP BY device_state;
+    </select>
+
+    <select id="statisticsTotal"
+            resultType="com.imapcloud.nest.v2.dao.po.out.PowerMeterFlightDetailDefectOutPO$StatisticsOutPO"
+            parameterType="com.imapcloud.nest.v2.manager.dataobj.in.PowerHomeAlarmStatisticsInDO">
+        SELECT verification_state deviceState,COUNT(*) num FROM
+        <include refid="tableName"/>
+        WHERE deleted=0
+        AND org_code=#{orgCode}
+        <if test="beginTime !=null  and beginTime !=''">
+            AND created_time &gt;#{beginTime}
+        </if>
+        <if test="endTime !=null  and endTime !=''">
+            AND created_time &lt; #{endTime}
+        </if>
+        AND device_state IN
+        <foreach collection="deviceState" item="state" separator="," close=")" open="(">
+            #{state}
+        </foreach>
+        GROUP BY verification_state;
+    </select>
+
+    <update id="batchUpdate"
+            parameterType="com.imapcloud.nest.v2.dao.po.in.PowerMeterFlightDetailDefectInPO$DefectStateInPO">
+        <foreach collection="infoList" item="info" separator=";">
+            update
+            <include refid="tableName"/>
+            set device_state = #{info.deviceState}, defect_state=#{info.defectState}, reason=#{info.reason}
+            <if test="info.taskState != null">
+                , task_state=#{info.taskState}
+            </if>
+            where deleted=0 and detail_id=#{info.paramDetailId}
+            <if test="info.paramTaskStateList != null">
+                and task_state in
+                <foreach collection="info.paramTaskStateList" open="(" item="taskStateItem" close=")" separator=",">
+                    #{taskStateItem}
+                </foreach>
+            </if>
+        </foreach>
+    </update>
+</mapper>

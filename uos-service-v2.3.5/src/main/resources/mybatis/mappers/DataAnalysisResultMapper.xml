@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisResultMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataAnalysisResultEntity">
+        <result column="id" property="id"/>
+        <result column="result_id" property="resultId"/>
+        <result column="photo_id" property="photoId"/>
+        <result column="mark_id" property="markId"/>
+        <result column="ai_mark" property="aiMark"/>
+        <result column="thum_image_path" property="thumImagePath"/>
+        <result column="addr_image_path" property="addrImagePath"/>
+        <result column="result_image_path" property="resultImagePath"/>
+        <result column="image_path" property="imagePath"/>
+        <result column="addr" property="addr"/>
+        <result column="longitude" property="longitude"/>
+        <result column="latitude" property="latitude"/>
+        <result column="topic_level_id" property="topicLevelId"/>
+        <result column="topic_level_name" property="topicLevelName"/>
+        <result column="industry_type" property="industryType"/>
+        <result column="topic_industry_name" property="topicIndustryName"/>
+        <result column="topic_problem_id" property="topicProblemId"/>
+        <result column="topic_problem_name" property="topicProblemName"/>
+        <result column="task_id" property="taskId"/>
+        <result column="task_name" property="taskName"/>
+        <result column="mission_id" property="missionId"/>
+        <result column="mission_name" property="missionName"/>
+        <result column="mission_records_id" property="missionRecordsId"/>
+        <result column="mission_records_name" property="missionRecordsName"/>
+        <result column="tag_id" property="tagId"/>
+        <result column="tag_name" property="tagName"/>
+        <result column="base_nest_id" property="baseNestId"/>
+        <result column="nest_name" property="nestName"/>
+        <result column="org_id" property="orgId"/>
+        <result column="org_name" property="orgName"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="modified_time" property="modifiedTime"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="modifier_id" property="modifierId"/>
+        <result column="deleted" property="deleted"/>
+        <result column="photo_create_time" property="photoCreateTime"/>
+        <result column="src_data_type" property="srcDataType"/>
+        <result column="task_type" property="taskType"/>
+        <result column="mission_seq_id" property="missionSeqId"/>
+        <result column="sub_type" property="subType"/>
+        <result column="mission_records_time" property="missionRecordsTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        result_id,
+        photo_id,
+        mark_id,
+        ai_mark,
+        thum_image_path,
+        addr_image_path,
+        result_image_path,
+        image_path,
+        addr,
+        longitude,
+        latitude,
+        topic_level_id,
+        topic_level_name,
+        topic_industry_id,
+        topic_industry_name,
+        topic_problem_id,
+        topic_problem_name,
+        task_id,
+        task_name,
+        mission_id,
+        mission_name,
+        mission_records_id,
+        mission_records_name,
+        tag_id,
+        tag_name,
+        base_nest_id,
+        nest_name,
+        org_id,
+        org_name,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted,
+        photo_create_time,
+        src_data_type,
+        task_type,
+        mission_seq_id,
+        sub_type,
+        mission_records_time,
+        result_group_id
+    </sql>
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyColumn="id" keyProperty="id"
+            parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisResultEntity">
+        INSERT INTO data_analysis_result (result_id,result_group_id, photo_id, mark_id, ai_mark, thum_image_path
+        , addr_image_path, result_image_path, addr, longitude, latitude
+        , topic_level_id, topic_level_name, industry_type, topic_industry_name
+        , topic_problem_id, topic_problem_name, task_id, task_name
+        , mission_id, mission_name, mission_records_id, mission_records_name
+        , tag_id, tag_name, base_nest_id, nest_name, org_code, org_name
+        , creator_id, modifier_id, topic_key, image_path
+        , photo_create_time, src_data_type, task_type, mission_seq_id
+        , sub_type, mission_records_time, grid_manage_id)
+        VALUES
+        <foreach collection="entityList" separator="," item="bean">
+            (
+            #{bean.resultId},#{bean.resultGroupId}, #{bean.photoId}, #{bean.markId}, #{bean.aiMark},
+            #{bean.thumImagePath}
+            , #{bean.addrImagePath}, #{bean.resultImagePath}, #{bean.addr}, #{bean.longitude} , #{bean.latitude}
+            , #{bean.topicLevelId}, #{bean.topicLevelName}, #{bean.industryType}, #{bean.topicIndustryName}
+            , #{bean.topicProblemId}, #{bean.topicProblemName}, #{bean.taskId}, #{bean.taskName}
+            , #{bean.missionId}, #{bean.missionName}, #{bean.missionRecordsId}, #{bean.missionRecordsName}
+            , #{bean.tagId}, #{bean.tagName}, #{bean.baseNestId}, #{bean.nestName}, #{bean.orgCode}, #{bean.orgName}
+            , #{bean.creatorId}, #{bean.modifierId}, #{bean.topicKey}, #{bean.imagePath}
+            , #{bean.photoCreateTime}, #{bean.srcDataType}, #{bean.taskType}, #{bean.missionSeqId}
+            , #{bean.subType}, #{bean.missionRecordsTime}, #{bean.gridManageId}
+            )
+        </foreach>
+    </insert>
+
+    <select id="collectSum" parameterType="com.imapcloud.nest.v2.dao.po.in.DataAnalysisResultInPO$ProblemIn"
+            resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisResultOutPO$CollectSumOut">
+        select topic_level_id topicLevelId, count(result_group_id) problemNum
+        from data_analysis_result_group
+        <include refid="where_group"/>
+        group by topicLevelId
+    </select>
+
+    <select id="problemTrend" parameterType="com.imapcloud.nest.v2.dao.po.in.DataAnalysisResultInPO$ProblemIn"
+            resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisResultOutPO$ProblemTrendOut">
+        select date(earliest_time) localDate, count(result_group_id) problemNum
+        from data_analysis_result_group
+        <include refid="where_group"/>
+        group by localDate
+    </select>
+
+    <sql id="where">
+        where deleted=0 and topic_key=#{criteria.topicKey} and photo_create_time between #{criteria.startTime} and
+        #{criteria.endTime}
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            AND org_code = #{criteria.orgCode}
+        </if>
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode != ''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.industryType != null">
+            and industry_type=#{criteria.industryType}
+        </if>
+        <if test="criteria.topicLevelId != null">
+            and topic_level_id=#{criteria.topicLevelId}
+        </if>
+        <if test="criteria.tagName != null">
+            and tag_name like concat('%', #{criteria.tagName}, '%')
+        </if>
+    </sql>
+
+    <sql id="where_group">
+        where deleted=0 and topic_key=#{criteria.topicKey} and earliest_time between #{criteria.startTime} and
+        #{criteria.endTime}
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            AND org_code = #{criteria.orgCode}
+        </if>
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode != ''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.industryType != null">
+            and industry_type = #{criteria.industryType}
+        </if>
+        <if test="criteria.topicLevelId != null">
+            and topic_level_id=#{criteria.topicLevelId}
+        </if>
+        <if test="criteria.tagName != null">
+            and tag_name like concat('%', #{criteria.tagName}, '%')
+        </if>
+        <if test="criteria.topicProblemId != null and criteria.topicProblemId != ''">
+            AND topic_problem_id = #{criteria.topicProblemId}
+        </if>
+    </sql>
+
+    <select id="countByCondition" parameterType="com.imapcloud.nest.v2.dao.po.in.DataAnalysisResultInPO$ProblemIn"
+            resultType="long">
+        select count(1)
+        from data_analysis_result
+        <include refid="where"/>
+    </select>
+
+    <select id="selectByCondition" parameterType="com.imapcloud.nest.v2.dao.po.in.DataAnalysisResultInPO$ProblemIn"
+            resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisResultEntity">
+        select
+        <include refid="Base_Column_List"/>
+        from data_analysis_result
+        <include refid="where"/>
+        order by photo_create_time desc,id desc
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </select>
+
+    <update id="updateDeleteByMarkIdList">
+        update data_analysis_result set deleted=1 where deleted=0
+        and mark_id in
+        <foreach collection="markIdList" open="(" close=")" separator="," item="markIdItem">
+            #{markIdItem}
+        </foreach>
+    </update>
+
+    <select id="selectByResultGroupId"
+            resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisResultOutPO$GroupInfoOutPO">
+        select result_group_id resultGroupId, count(1) num, thum_image_path thumImagePath
+        from data_analysis_result
+        where result_group_id in
+        <foreach collection="groupIdList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND
+        deleted = 0
+        group by result_group_id
+    </select>
+
+    <select id="selectAllByResultGroupId"
+            resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisResultEntity">
+        select *
+        from data_analysis_result
+        where result_group_id in
+        <foreach collection="groupIdList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        group by result_group_id
+    </select>
+    <select id="selectAllByMarkIdList"
+            resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisResultEntity">
+        select
+        <include refid="Base_Column_List"/>
+        from data_analysis_result
+        where mark_id in
+        <foreach collection="markIdList" open="(" close=")" separator="," item="markIdItem">
+            #{markIdItem}
+        </foreach>
+    </select>
+
+    <select id="selectGroupByGridManageIds" resultType="com.imapcloud.nest.v2.dao.po.out.GridProblemsOutPO">
+        SELECT grid_manage_id,count(*) counts
+        FROM data_analysis_result_group
+        WHERE deleted=0
+        <if test = "orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND org_code LIKE #{orgCodeLike}
+        </if>
+        AND grid_manage_id IN
+        <foreach collection="gridManageIds" open="(" close=")" separator="," item="gridId">
+            #{gridId}
+        </foreach>
+        GROUP BY grid_manage_id;
+    </select>
+
+    <update id="batchUpdateGridManage" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisResultEntity">
+        <foreach collection="entityList" item="entity" separator=";">
+            update data_analysis_result
+            set grid_manage_id=#{entity.gridManageId}
+            where result_id=#{entity.resultId} and deleted=0
+        </foreach>
+    </update>
+</mapper>

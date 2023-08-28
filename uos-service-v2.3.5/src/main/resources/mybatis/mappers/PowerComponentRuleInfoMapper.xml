@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerComponentRuleInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.PowerComponentRuleInfoEntity">
+        <result column="id" property="id" />
+        <result column="component_rule_id" property="componentRuleId" />
+        <result column="component_id" property="componentId" />
+        <result column="component_rule_name" property="componentRuleName" />
+        <result column="alarm_status" property="alarmStatus" />
+        <result column="alarm_min" property="alarmMin" />
+        <result column="alarm_max" property="alarmMax" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        component_rule_id,
+        component_id,
+        component_rule_name,
+        alarm_status,
+        alarm_min,
+        alarm_max,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted, seq
+    </sql>
+    <insert id="batchInsert">
+        insert into power_component_rule_info (component_rule_id,component_id,component_rule_name
+            ,alarm_status,alarm_min,alarm_max,seq,created_time,modified_time,creator_id,modifier_id)
+        values
+        <foreach collection="entityList" item="entity" separator=",">
+           (#{entity.componentRuleId}, #{entity.componentId}, #{entity.componentRuleName}, #{entity.alarmStatus}
+            , #{entity.alarmMin}, #{entity.alarmMax}, #{entity.seq}, #{entity.createdTime}
+            , #{entity.modifiedTime}, #{entity.creatorId}, #{entity.modifierId})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate">
+        <foreach collection="entityList" item="entity" separator=";">
+            update power_component_rule_info set component_rule_name=#{entity.componentRuleName}
+                , alarm_status=#{entity.alarmStatus}, alarm_min=#{entity.alarmMin}
+                , alarm_max=#{entity.alarmMax}, seq=#{entity.seq}, modifier_id=#{entity.modifierId}
+            where component_rule_id=#{entity.componentRuleId} and deleted = 0
+        </foreach>
+    </update>
+
+    <update id="deleteByComponentRuleIdList">
+        update power_component_rule_info set deleted = 1, modifier_id=#{accountId}
+        where deleted = 0 and component_rule_id in
+        <foreach collection="componentRuleIdList" open="(" item="componentRuleIdItem" separator="," close=")">
+            #{componentRuleIdItem}
+        </foreach>
+    </update>
+
+    <update id="deleteByComponentId">
+        update power_component_rule_info set deleted = 1, modifier_id=#{accountId}
+        where deleted = 0 and component_id=#{componentId}
+    </update>
+</mapper>

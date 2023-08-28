@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.MediaStreamMapper">
+
+    <update id="updatePullStreamUrl">
+        update media_stream set stream_pull_url=#{streamPullUrl}, modifier_id=#{modifierId}
+        where stream_id=#{streamId}
+    </update>
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.MediaStreamEntity">
+        insert into media_stream(stream_id, stream_pull_url, creator_id, modifier_id, created_time, modified_time)
+        values
+        <foreach collection="entityList" item="item" separator=",">
+            (
+            #{item.streamId}, #{item.streamPullUrl}, #{item.creatorId}, #{item.modifierId}, #{item.createdTime}, #{item.modifiedTime}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateByStreamId" parameterType="com.imapcloud.nest.v2.dao.entity.MediaStreamEntity">
+        UPDATE media_stream
+        <set>
+            <if test="null != streamId and '' != streamId">stream_id = #{streamId},</if>
+            <if test="null != streamPushUrl and '' != streamPushUrl">stream_push_url = #{streamPushUrl},</if>
+            <if test="null != streamPullUrl">stream_pull_url = #{streamPullUrl},</if>
+            <if test="null != protocol and '' != protocol">protocol = #{protocol},</if>
+            <if test="null != modifierId and '' != modifierId">modifier_id = #{modifierId}</if>
+        </set>
+        where stream_id=#{streamId} and deleted=0
+    </update>
+
+    <update id="deleteByStreamIdList">
+        UPDATE media_stream set deleted = 1, modifier_id = #{accountId}
+        where deleted=0 and stream_id in
+            <foreach collection="streamIdList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    </update>
+</mapper>

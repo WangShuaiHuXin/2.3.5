@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MissionPhotoTagRelMapper">
+
+
+    <update id="deleteByTagIdAndPhotoIdList" >
+        UPDATE mission_photo_tag_rel SET deleted = 1 WHERE tag_id = #{tagId} AND mission_photo_id IN
+        <foreach collection="photoIdList" item="photoId" index="index" open="(" close=")" separator=",">
+            #{photoId}
+        </foreach>
+    </update>
+</mapper>

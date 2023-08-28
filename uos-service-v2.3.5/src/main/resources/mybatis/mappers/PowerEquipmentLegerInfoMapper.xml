@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerEquipmentLegerInfoMapper">
+    <sql id="relTableName">
+       power_equipment_ledger_info
+    </sql>
+    <sql id="whereCondition">
+        where 1=1
+        <if test="equipmentId !=null and equipmentId !=''">
+            and equipment_id = #{equipmentId}
+        </if>
+        <if test="equipmentName !=null">
+            and equipment_name like concat('%',#{equipmentName},'%'>
+        </if>
+        <if test="equipmentType !=null">
+            and equipment_type like concat('%',#{equipmentType},'%'>
+        </if>
+        <if test="pmsId !=null and pmsId !=''">
+            and pms_id=#{pmsId}
+        </if>
+        <if test="spacingName !=null">
+            and spacing_unit_name like concat('%',#{spacingName},'%'>
+        </if>
+        <if test="orgCode !=null">
+            and org_code=#{orgCode}
+        </if>
+        <if test="beginTime !=null">
+            and created_time &gt; #{beginTime}
+        </if>
+        <if test="endTime !=null">
+            and created_time &lt; #{endTime}
+        </if>
+        <if test="orgCode != null">
+            and org_code=#{orgCode}
+        </if>
+    </sql>
+    <sql id="pageCondition">
+        <if test="pageSize != null and offset !=null">
+            limit #{pageSize} offset #{offset}
+        </if>
+    </sql>
+    <insert id="saveBatch" parameterType="com.imapcloud.nest.v2.dao.entity.PowerEquipmentLegerInfoEntity">
+        INSERT INTO `power_equipment_ledger_info` (
+        `id`,
+        `equipment_id`,
+        `equipment_name`,
+        `equipment_type`,
+        `pms_id`,
+        `spacing_unit_name`,
+        `voltage_level`,
+        `substation_name`,
+        `org_code`,
+        `creator_id`,
+        `created_time`,
+        `modifier_id`,
+        `modified_time`,
+        `deleted`
+        )
+        VALUES
+        <foreach collection="list" separator="," item="bean">
+            (
+            null,
+            #{bean.equipmentId},#{bean.equipmentName},
+            #{bean.equipmentType},#{bean.pmsId},
+            #{bean.spacingUnitName},#{bean.voltageLevel},
+            #{bean.substationName},#{bean.orgCode},
+            #{bean.creatorId},
+            NOW(),
+            #{bean.modifierId},
+            NOW(),
+            '0'
+            )
+        </foreach>
+    </insert>
+    <select id="queryByCondition" parameterType="com.imapcloud.nest.v2.manager.dataobj.in.PowerEquipmentQueryDO"
+            resultType="com.imapcloud.nest.v2.dao.entity.PowerEquipmentLegerInfoEntity">
+        select * from
+        <include refid="relTableName"></include>
+        where 1=1
+        <if test="equipmentId !=null and equipmentId !=''">
+            and equipment_id = #{equipmentId}
+        </if>
+        <if test="equipmentName !=null">
+            and equipment_name like concat('%',#{equipmentName},'%'>
+        </if>
+        <if test="equipmentType !=null">
+            and equipment_type like concat('%',#{equipmentType},'%'>
+        </if>
+        <if test="pmsId !=null and pmsId !=''">
+            and pms_id=#{pmsId}
+        </if>
+        <if test="spacingName !=null">
+            and spacing_unit_name like concat('%',#{spacingName},'%'>
+        </if>
+        <if test="orgCode !=null">
+            and org_code=#{orgCode}
+        </if>
+        <if test="beginTime !=null">
+            and created_time &gt; #{beginTime}
+        </if>
+        <if test="endTime !=null">
+            and created_time &lt; #{endTime}
+        </if>
+        and deleted ='0'
+        <include refid="pageCondition"></include>
+    </select>
+
+    <update id="updateList"
+            parameterType="com.imapcloud.nest.v2.manager.dataobj.in.PowerEquipmentInDO">
+        <foreach collection="list" separator=";" item="bean">
+            update
+            <include refid="relTableName"></include>
+            set equipment_name=#{bean.equipmentName},
+            equipment_type=#{bean.equipmentType},
+            spacing_unit_name=#{bean.spacingUnitName},
+            voltage_level=#{bean.voltageLevel},
+            substation_name=#{bean.substationName}
+            where
+            pms_id=#{bean.pmsId}
+            and deleted='0'
+        </foreach>
+    </update>
+    <select id="queryEquipmentById" resultType="com.imapcloud.nest.v2.dao.entity.PowerEquipmentLegerInfoEntity"
+            parameterType="String">
+       SELECT * FROM power_equipment_ledger_info WHERE deleted = 0 AND equipment_id=#{equipmentId}
+    </select>
+
+    <select id="queryEquipmentsByIds" resultType="com.imapcloud.nest.v2.dao.entity.PowerEquipmentLegerInfoEntity"
+            parameterType="String">
+        SELECT * FROM power_equipment_ledger_info WHERE deleted = 0 AND equipment_id in
+        <foreach collection="equipmentList" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+    </select>
+    
+    <update id="updateEquipmentToDelete" parameterType="String">
+        update
+        power_equipment_ledger_info
+        set deleted='1'
+        where equipment_id in
+        <foreach collection="equipmentList" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+    </update>
+</mapper>

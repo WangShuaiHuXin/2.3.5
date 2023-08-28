@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisBaseMapper">
+
+    <sql id="tableName">data_analysis_center_base</sql>
+
+    <!-- 左连接查询SQL -->
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC , t0.id DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.startTime != null and criteria.startTime != ''">
+            AND t0.created_time &gt;= #{criteria.startTime}
+        </if>
+        <if test="(criteria.startTime != null and criteria.startTime != '') and (criteria.endTime != null and criteria.endTime != '')">
+            AND t0.created_time &lt;= #{criteria.endTime}
+        </if>
+        <if test="criteria.taskName != null and criteria.taskName != ''">
+            AND t0.task_name like "%"#{criteria.taskName}"%"
+        </if>
+        <if test="criteria.tagName != null and criteria.tagName != ''">
+            AND t0.tag_name like "%"#{criteria.tagName}"%"
+        </if>
+        <if test="criteria.missionId != null and criteria.missionId != ''">
+            AND t0.mission_id = #{criteria.missionId}
+        </if>
+        <if test="criteria.missionRecordId != null and criteria.missionRecordId != ''">
+            AND t0.mission_record_id = #{criteria.missionRecordId}
+        </if>
+        <if test="criteria.nestId != null and criteria.nestId != ''">
+            AND t0.nest_id = #{criteria.nestId}
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            AND t0.org_code = #{criteria.orgCode}
+        </if>
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(1)
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisCenterBaseEntity">
+        SELECT
+            t0.*
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+            t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+</mapper>

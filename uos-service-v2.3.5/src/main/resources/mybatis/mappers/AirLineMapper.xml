@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.AirLineMapper">
+    <resultMap id="airLineEntityPartMap" type="com.imapcloud.nest.model.AirLineEntity">
+        <id property="id" column="id"/>
+        <result property="mergeCount" column="merge_count"/>
+        <result property="predicMiles" column="predic_miles"/>
+        <result property="photoCount" column="photo_count"/>
+        <result property="videoCount" column="video_count"/>
+        <result property="videoLength" column="video_length"/>
+    </resultMap>
+    <resultMap id="airLineEntityMap" type="com.imapcloud.nest.model.AirLineEntity">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="type" column="type"/>
+        <result property="waypoints" column="waypoints"/>
+        <result property="pointCount" column="point_count"/>
+        <result property="mergeCount" column="merge_count"/>
+        <result property="predicMiles" column="predic_miles"/>
+        <result property="predicTime" column="predic_time"/>
+        <result property="photoCount" column="photo_count"/>
+        <result property="videoCount" column="video_count"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+
+    <select id="batchSelectEstimateMilesAndMergeCountByIdList" resultMap="airLineEntityPartMap">
+        SELECT id,merge_count,predic_miles, photo_count, video_count, video_length FROM air_line WHERE deleted = 0 and id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="batchSelectPart5ByIdList" resultMap="airLineEntityMap">
+        SELECT id,merge_count,predic_miles,predic_time,photo_count,waypoints,type,absolute
+        FROM air_line WHERE id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <delete id="batchSoftDeleteByIds" parameterType="java.util.List">
+        UPDATE air_line SET deleted = 1 WHERE id IN
+        <foreach collection="idList" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

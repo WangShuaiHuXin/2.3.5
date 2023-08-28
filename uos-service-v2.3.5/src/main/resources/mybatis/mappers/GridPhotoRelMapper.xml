@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.GridPhotoRelMapper">
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.GridPhotoRelEntity">
+        insert into grid_photo_rel (grid_manage_id, grid_data_id, photo_id, mission_records_id)
+        values
+        <foreach collection="entityList" item="entity" separator=",">
+            (#{entity.gridManageId}, #{entity.gridDataId}, #{entity.photoId}, #{entity.missionRecordsId})
+        </foreach>
+    </insert>
+
+    <select id="queryLatestMission" resultType="java.lang.Integer">
+        SELECT mission_records_id
+        FROM grid_photo_rel
+        WHERE grid_manage_id = #{gridManageId}
+          AND deleted = 0
+        GROUP BY mission_records_id
+        ORDER BY created_time
+                DESC LIMIT 1
+    </select>
+
+    <select id="queryPhotoIds" resultType="long">
+        SELECT photo_id
+        FROM grid_photo_rel
+        WHERE grid_data_id = #{criteria.gridDataId}
+          AND deleted = 0
+          AND created_time BETWEEN #{criteria.startTime} AND #{criteria.endTime}
+    </select>
+
+    <select id="gridManageHasData" resultType="com.imapcloud.nest.v2.dao.po.out.GridManageHasDataPO">
+        SELECT
+        grid_manage_id, count(grid_manage_id) as nums
+        FROM
+        grid_photo_rel
+        WHERE
+        deleted = 0
+        <if test="startTime != null and endTime != null">
+            AND created_time BETWEEN #{startTime} AND #{endTime}
+        </if>
+        AND grid_manage_id IN
+        <foreach collection="gridManageIds" open="(" item="id" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY
+        grid_manage_id
+    </select>
+
+</mapper>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.GridMissionRecordMapper">
+
+    <sql id="tableName">grid_mission_record</sql>
+
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <sql id="limitCondition">
+        LIMIT
+        #{restrict.limit} OFFSET
+        #{restrict.offset}
+    </sql>
+
+    <sql id="selectPhotoItem">
+        t0.id,
+        t0.name,
+        t0.photo_url,
+        t0.photo_size,
+        t0.thumbnail_url,
+        t0.mission_id,
+        t0.mission_records_id,
+        t0.latitude,
+        t0.longitude,
+        t0.altitude,
+        t0.task_id,
+        t0.photo_type,
+        t0.len_type,
+        t0.create_time
+    </sql>
+
+    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC
+    </sql>
+
+    <sql id="whereCondition">
+        <if test="criteria.missionName != null and criteria.missionName !=''">
+            <bind name="nameLike" value="'%' + criteria.missionName + '%'"/>
+            AND t0.mission_name LIKE #{nameLike}
+        </if>
+        <if test="criteria.gridManageId != null and criteria.gridManageId != ''">
+            AND t0.grid_manage_id = #{criteria.gridManageId}
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            <bind name="orgCodeLike" value="criteria.orgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.baseNestId != null and criteria.baseNestId != ''">
+            AND t0.base_nest_id = #{criteria.baseNestId}
+        </if>
+        <if test="criteria.baseNestName != null and criteria.baseNestName !=''">
+            <bind name="nameLike" value="'%' + criteria.baseNestName + '%'"/>
+            AND t0.base_nest_name LIKE #{nameLike}
+        </if>
+        <if test="criteria.startTime != null and criteria.endTime != null">
+            AND t0.created_time BETWEEN #{criteria.startTime} AND #{criteria.endTime}
+        </if>
+    </sql>
+
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(*)
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.GridMissionRecordEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+    <select id="getMissionRecordsIdByGridManageIds" resultType="com.imapcloud.nest.v2.dao.po.out.GridStatisticsPO">
+        SELECT tm.task_id as taskId, tm.grid_manage_id as gridManageId, COUNT(tm.grid_manage_id) as missionCount
+        FROM mission_records tmr
+        INNER JOIN (SELECT t0.id,t0.task_id, t1.grid_manage_id
+        FROM mission t0
+        INNER JOIN grid_manage t1 ON t0.task_id = t1.task_id
+        WHERE t1.deleted = 0) tm ON tmr.mission_id = tm.id
+        WHERE tm.grid_manage_id IN
+        <foreach collection="gridManageIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        GROUP BY tm.grid_manage_id,tm.task_id
+    </select>
+
+    <select id="getMissionRecordsIdByGridManageIdsToPhoto"
+            resultType="com.imapcloud.nest.v2.dao.po.out.GridMissionRecordsPO">
+        SELECT tmr.id as mission_records_id, tmr.data_status, tm.mission_id, tm.mission_name, tm.task_id,
+        tm.grid_manage_id
+        FROM mission_records as tmr
+        INNER JOIN (SELECT t0.id as mission_id,
+        t0.name as mission_name,
+        t0.task_id as task_id,
+        t1.grid_manage_id as grid_manage_id
+        FROM mission t0
+        INNER JOIN grid_manage t1 ON t0.task_id = t1.task_id
+        WHERE t0.deleted = 0
+        AND
+        t1.grid_manage_id IN
+        <foreach collection="gridManageIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        )
+        as tm ON tmr.mission_id = tm.mission_id
+        ORDER BY mission_records_id DESC
+    </select>
+
+    <select id="getMissionRecordsDataStatus" resultType="com.imapcloud.nest.v2.dao.po.out.GridDataStatusPO">
+        SELECT
+        id,data_status,fly_index
+        FROM
+        mission_records
+        WHERE
+        deleted = 0
+        AND
+        id IN
+        <foreach collection="missionRecordsIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getMissionNameAndTaskName" resultType="com.imapcloud.nest.v2.dao.po.out.GridMissionNamePO">
+        SELECT t0.name as mission_name, t0.id as mission_id, t1.name as task_name
+        FROM mission as t0
+        INNER JOIN task as t1 on t0.task_id = t1.id
+        where
+        t0.id IN
+        <foreach collection="missionIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getHistoryPhoto" resultType="com.imapcloud.nest.v2.dao.po.in.GridHistoryPhotoPO">
+        SELECT
+        <include refid="selectPhotoItem"/>
+        FROM mission_photo t0
+        WHERE
+        t0.deleted = 0
+        AND t0.id IN
+        <foreach collection="photoIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+    </select>
+
+    <select id="selectGridMissionRecords"
+            resultType="com.imapcloud.nest.v2.dao.po.out.GridMissionRecordsPO">
+        SELECT t1.id, t1.org_code, t1.grid_inspect_id,t1.task_id, t1.mission_id, t1.mission_records_id, t1.mission_name,
+        t1.grid_manage_id, t1.task_name, t1.is_newest
+        FROM grid_inspect_record t1
+        WHERE deleted = 0
+        AND t1.is_newest = 1
+        AND t1.grid_manage_id IN
+        <foreach collection="gridManageIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectGridMissionRecordsWithOrgCode"
+            resultType="com.imapcloud.nest.v2.dao.po.out.GridMissionRecordsPO">
+        SELECT t1.id, t1.org_code, t1.grid_inspect_id,t1.task_id, t1.mission_id, t1.mission_records_id, t1.mission_name,
+        t1.grid_manage_id, t1.task_name
+        FROM grid_inspect_record t1
+        INNER JOIN (
+            SELECT a.id, a.grid_manage_id, a.grid_inspect_id
+            FROM grid_inspect_record a
+            WHERE
+            org_code = #{orgCode}
+            AND id = (
+                SELECT max(id)
+                FROM grid_inspect_record
+                WHERE grid_manage_id = a.grid_manage_id
+            )
+            GROUP BY a.grid_manage_id
+            ) t2
+        ON t1.grid_inspect_id = t2.grid_inspect_id
+        WHERE deleted = 0
+        AND t1.grid_manage_id IN
+        <foreach collection="gridManageIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="queryGridManageIdAndMax"
+            resultType="com.imapcloud.nest.v2.dao.po.out.GridManageIdAndMaxPO">
+        select grid_manage_id, max(inspect_seq) as inspect_seq
+        from grid_inspect_record
+        WHERE deleted = 0
+        GROUP BY grid_manage_id;
+    </select>
+
+    <select id="queryCenterDetailId"
+            resultType="com.imapcloud.nest.v2.dao.po.out.GridCenterDetailIdOutPO">
+        select photo_id as photoId, center_detail_id as centerDetailId
+        from data_analysis_center_detail
+        WHERE deleted = 0
+        AND photo_id IN
+        <foreach collection="photoIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

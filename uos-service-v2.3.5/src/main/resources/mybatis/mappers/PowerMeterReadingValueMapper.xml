@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerMeterReadingValueMapper">
+    <select id="selecByValueIds" parameterType="java.lang.String" resultType="com.imapcloud.nest.v2.dao.entity.PowerMeterReadingValueEntity">
+        select
+        * from
+        power_meter_reading_value
+        where value_id
+        in
+        <foreach collection="list" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+    </select>
+
+    <update id="deleteByDetailIdList">
+        update power_meter_reading_value
+        set deleted = 1
+        where deleted = 0 and detail_id in
+        <foreach collection="detailIdList" open="(" separator="," item="detailIdItem" close=")">
+            #{detailIdItem}
+        </foreach>
+    </update>
+</mapper>

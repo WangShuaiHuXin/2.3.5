@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerDiscernFunSettingMapper">
+
+
+    <insert id="saveBatch" parameterType="com.imapcloud.nest.v2.dao.entity.PowerDiscernFunSettingEntity">
+        INSERT INTO power_discern_fun_setting
+        (id,
+        org_code,
+        discern_type,
+        discern_fun_id,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted)
+        VALUES
+        <foreach collection="list" item="bean" separator=",">
+            (
+            null,
+            #{bean.orgCode},
+            #{bean.discernType},
+            #{bean.discernFunId},
+            now(),
+            now(),
+            #{bean.creatorId},
+            #{bean.modifierId},
+            '0')
+        </foreach>
+    </insert>
+</mapper>

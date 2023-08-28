@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.FlightMissionMapper">
+
+
+    <select id="getFlightMissionPage" resultType="com.imapcloud.nest.pojo.vo.FlightMissionVO">
+        SELECT f.*
+        FROM flight_mission f
+        WHERE f.deleted = 0
+        <if test="startTimeDate != null">
+            AND f.start_time >= #{startTimeDate}
+        </if>
+        <if test="startTimeDate != null and endTimeDate != null">
+            AND f.end_time &lt;= #{endTimeDate}
+        </if>
+        <if test="nestId != null and nestId != null">
+            AND f.base_nest_id = #{nestId}
+        </if>
+        <if test="uavWhich != null and uavWhich != null">
+            AND f.uav_which = #{uavWhich}
+        </if>
+
+    </select>
+
+    <select id="getTotalFlightMissionVO" resultType="com.imapcloud.nest.pojo.vo.FlightMissionAggVO">
+        SELECT
+        count( 1 ) as totalNum,
+        sum( ff.mission_date ) as totalDate,
+        sum( ff.mission_distance ) as totalDistance
+        FROM
+        flight_mission ff
+        WHERE
+        ff.deleted = 0 and ff.end_time > '2010-01-01 00:00:00'
+        <if test="nestId != null and nestId != null">
+            AND ff.base_nest_id = #{nestId}
+        </if>
+    </select>
+
+    <select id="getExportVO" resultType="com.imapcloud.nest.pojo.vo.FlightMissionExportVO">
+        SELECT
+            n.NAME AS nestName,
+             n.type AS nestTypeId-- 基站 ID
+            ,fm.*
+        FROM
+            flight_mission fm
+        LEFT JOIN
+            base_nest n
+            ON fm.base_nest_id = n.nest_id
+        WHERE fm.deleted = 0
+        <if test="startTimeDate != null">
+            AND fm.start_time >= #{startTimeDate}
+        </if>
+        <if test="startTimeDate != null and endTimeDate != null">
+            AND fm.end_time &lt;= #{endTimeDate}
+        </if>
+        <if test="nestIds != null and nestIds !=''">
+            AND fm.base_nest_id IN
+            <foreach collection="nestIds" open="(" close=")" separator="," item="nestId">
+                #{nestId}
+            </foreach>
+        </if>
+        <if test="uavWhich != null and uavWhich !=''">
+            AND fm.uav_which = #{uavWhich}
+        </if>
+    </select>
+
+
+</mapper>

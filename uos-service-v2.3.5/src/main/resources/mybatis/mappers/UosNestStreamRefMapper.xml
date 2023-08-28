@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.UosNestStreamRefMapper">
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.UosNestStreamRefEntity">
+        insert into uos_nest_stream_ref(nest_id, uav_id, stream_id, stream_use, creator_id, modifier_id, created_time, modified_time)
+        values
+        <foreach collection="entityList" item="item" open="" separator="," close="">
+            (#{item.nestId}, #{item.uavId}, #{item.streamId},#{item.streamUse}, #{item.creatorId}, #{item.modifierId}, now() now())
+        </foreach>
+    </insert>
+
+<!--    <insert id="insert" parameterType="com.imapcloud.nest.v2.dao.entity.UosNestStreamRefEntity">-->
+<!--        insert into uos_nest_stream_ref(nest_id, stream_id, stream_use, creator_id, modifier_id)-->
+<!--        values (#{nestId}, #{streamId},#{streamUse}, #{creatorId}, #{modifierId})-->
+<!--    </insert>-->
+
+
+    <update id="deleteByDeviceIdList">
+        update media_device_stream_ref set deleted=1, modifier_id=#{accountId}
+        where deleted = 0 and device_id in
+        <foreach collection="deviceIdList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="delByNestId">
+        UPDATE uos_nest_stream_ref
+        SET deleted = 1
+        WHERE nest_id=#{nestId} and deleted = 0
+    </update>
+
+    <update id="updateStreamIdByNestId">
+        UPDATE uos_nest_stream_ref
+        SET stream_id={streamId}
+        WHERE nest_id=#{nestId} and stream_use = #{streamUse} and deleted=0;
+    </update>
+
+    <select id="checkByNestId" resultType="java.lang.Integer">>
+        select count(1) from uos_nest_stream_ref
+        where nest_id = #{nestId} and stream_use = #{streamUse} and deleted=0;
+    </select>
+
+    <select id="findByNestId" resultType="com.imapcloud.nest.pojo.dto.UosNestStreamRefDTO">
+        select * from uos_nest_stream_ref
+        where nest_id=#{nestId} and stream_use = #{streamUse} and deleted=0
+        limit 1;
+    </select>
+
+    <select id="listByNestId" resultType="com.imapcloud.nest.pojo.dto.UosNestStreamRefDTO">
+        select * from uos_nest_stream_ref
+        where nest_id=#{nestId} and deleted=0
+    </select>
+</mapper>

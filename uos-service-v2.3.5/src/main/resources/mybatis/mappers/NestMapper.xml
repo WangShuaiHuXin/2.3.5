@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.NestMapper">
+
+    <resultMap id="nestDetailsDTOMap" type="com.imapcloud.nest.pojo.dto.NestDetailsDto">
+        <result property="nestId" column="id"/>
+        <result property="uuid" column="uuid"/>
+        <result property="type" column="type"/>
+        <result property="name" column="name"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="serverUrl" column="server_url"/>
+        <result property="rtmpUrl" column="rtmp_url"/>
+        <result property="pushUrl" column="push_url"/>
+        <result property="outVideoId" column="out_video_id"/>
+        <result property="outVideoUrl" column="out_video_url"/>
+        <result property="innerVideoId" column="inner_video_id"/>
+        <result property="innerVideoUrl" column="inner_video_url"/>
+        <result property="monitorUsername" column="out_video_user"/>
+        <result property="monitorPassword" column="out_video_passwd"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="altitude" column="altitude"/>
+        <result property="nestPic" column="nest_pic"/>
+        <result property="aircraftPic" column="aircraft_pic"/>
+        <result property="videoPic" column="video_pic"/>
+        <result property="regionId" column="region_id"/>
+        <result property="description" column="description"/>
+        <result property="address" column="address"/>
+        <result property="aircraftId" column="aircraft_id"/>
+        <result property="aircraftCode" column="aircraft_code"/>
+        <result property="aircraftNumber" column="aircraft_number"/>
+        <result property="controllerNumber" column="controller_number"/>
+    </resultMap>
+
+    <resultMap id="nestDetailsInfoDTOMap" type="com.imapcloud.nest.pojo.dto.NestDetailsInfoDto">
+        <result property="nestId" column="id"/>
+        <result property="uuid" column="uuid"/>
+        <result property="type" column="type"/>
+        <result property="name" column="name"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="serverUrl" column="server_url"/>
+        <result property="rtmpUrl" column="rtmp_url"/>
+        <result property="pushUrl" column="push_url"/>
+        <result property="outVideoId" column="out_video_id"/>
+        <result property="outVideoUrl" column="out_video_url"/>
+        <result property="innerVideoId" column="inner_video_id"/>
+        <result property="innerVideoUrl" column="inner_video_url"/>
+        <result property="monitorUsername" column="out_video_user"/>
+        <result property="monitorPassword" column="out_video_passwd"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="altitude" column="altitude"/>
+        <result property="nestPic" column="nest_pic"/>
+        <result property="aircraftPic" column="aircraft_pic"/>
+        <result property="videoPic" column="video_pic"/>
+        <result property="regionId" column="region_id"/>
+        <result property="regionName" column="region_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="description" column="description"/>
+        <result property="address" column="address"/>
+        <result property="aircraftId" column="aircraft_id1"/>
+        <result property="aircraftCode" column="aircraft_code"/>
+        <result property="aircraftTypeValue" column="aircraft_type_code"/>
+        <result property="aircraftNumber" column="aircraft_number"/>
+        <result property="cameraName" column="camera_name"/>
+        <result property="controllerNumber" column="controller_number"/>
+        <result property="nestNumber" column="number"/>
+        <result property="rtkType" column="rtk_type"/>
+        <result property="useGb" column="use_gb"/>
+        <result property="outVideoUser" column="out_video_user"/>
+        <result property="outVideoPassword" column="out_video_password"/>
+        <result property="outVideoMac" column="out_video_mac"/>
+        <result property="outVideoEnable" column="out_video_enable"/>
+        <result property="outVideoIp" column="out_video_ip"/>
+        <result property="outVideoPushUrl" column="out_video_push_url"/>
+
+        <result property="innerVideoUser" column="inner_video_user"/>
+        <result property="innerVideoPassword" column="inner_video_password"/>
+        <result property="innerVideoMac" column="inner_video_mac"/>
+        <result property="innerVideoEnable" column="inner_video_enable"/>
+        <result property="innerVideoIp" column="inner_video_ip"/>
+        <result property="innerVideoPushUrl" column="inner_video_push_url"/>
+        <collection property="sensorList" ofType="com.imapcloud.nest.pojo.dto.NestDetailsInfoDto$sensorBean">
+            <result column="sensor_id" property="sensorId"></result>
+            <result column="sensor_name" property="sensorName"></result>
+        </collection>
+    </resultMap>
+
+    <select id="getByNestId" resultMap="nestDetailsInfoDTOMap">
+        SELECT t1.*,
+               t2.id         AS aircraft_id1,
+               t2.camera_name,
+               t2.type as aircraft_type_code,
+               t2.uav_number as aircraft_number,
+               t2.rc_number   as controller_number,
+               t3.sensor_id  AS sensor_id,
+               t4.name       AS sensor_name,
+               t5.region_name       AS region_name
+        FROM base_nest t1
+                 LEFT JOIN base_uav_nest_ref t6 ON t1.nest_id = t6.nest_id AND t6.deleted = 0
+                 LEFT JOIN base_uav t2 ON t2.uav_id = t6.uav_id AND t2.deleted = 0
+                 LEFT JOIN nest_sensor_rel t3 ON t3.nest_id = t1.id AND t3.deleted = 0
+                 LEFT JOIN sensor t4 ON t4.id = t3.sensor_id
+                 LEFT JOIN base_region t5 ON t5.region_id = t1.region_id
+        WHERE t1.nest_id = #{nestId}
+          AND t1.deleted = 0
+    </select>
+
+   <select id="getByNestUuId" resultMap="nestDetailsInfoDTOMap">
+       SELECT t1.*,
+              t2.id         AS aircraft_id1,
+              t2.camera_name,
+              t2.type as aircraft_type_code,
+              t2.uav_number as aircraft_number,
+              t2.rc_number   as controller_number,
+              t3.sensor_id  AS sensor_id,
+              t4.name       AS sensor_name,
+              t5.region_name       AS region_name
+       FROM base_nest t1
+                LEFT JOIN base_uav_nest_ref t6 ON t1.nest_id = t6.nest_id AND t6.deleted = 0
+                LEFT JOIN base_uav t2 ON t2.uav_id = t6.uav_id AND t2.deleted = 0
+                LEFT JOIN nest_sensor_rel t3 ON t3.nest_id = t1.id AND t3.deleted = 0
+                LEFT JOIN sensor t4 ON t4.id = t3.sensor_id
+                LEFT JOIN base_region t5 ON t5.region_id = t1.region_id
+       WHERE t1.uuid = #{nestUuid}
+         AND t1.deleted = 0
+    </select>
+
+    <select id="listNestByOrgCode" resultType="com.imapcloud.nest.pojo.dto.NestDto">
+        select
+        n.id,
+        n.longitude,
+        n.latitude,
+        n.name,
+        nu.org_code unitId,
+        n.uuid
+        from nest n , nest_unit nu
+        where n.id = nu.nest_id
+        and nu.org_code = #{orgCode}
+        and n.deleted = 0
+    </select>
+
+    <select id="getNestAppNameHttpUrlList" resultType="com.imapcloud.nest.pojo.dto.NestAppNameHttpUrlDTO">
+        SELECT name, rtmp_url AS httpUrl
+        FROM nest
+        WHERE deleted = 0
+        UNION
+        SELECT name, pull_http AS httpUrl
+        FROM sys_app
+        WHERE deleted = 0
+    </select>
+
+    <sql id="tableName">nest</sql>
+
+    <sql id="innerJoinPlanSql">
+        INNER JOIN nest_unit t1 ON t1.nest_id = t0.id
+        <if test = "criteria.visibleOrgCode != null and criteria.visibleOrgCode != ''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t1.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            AND t1.org_code = #{criteria.orgCode}
+        </if>
+    </sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.modify_time DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            <bind name="keywordLike" value="'%' + criteria.keyword + '%'"/>
+            AND (
+            t0.number = #{criteria.keyword}
+            OR t0.uuid = #{criteria.keyword}
+            OR t0.name LIKE #{keywordLike}
+            )
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+            COUNT(DISTINCT t0.id)
+        FROM
+            <include refid="tableName"/> AS t0
+            <include refid="innerJoinPlanSql"/>
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.model.NestEntity">
+        SELECT DISTINCT
+            t0.id, t0.uuid, t0.name, t0.type, t0.show_status, t0.region_id, t0.modify_time
+        FROM
+            <include refid="tableName"/> AS t0
+            <include refid="innerJoinPlanSql"/>
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+            <include refid="orderCondition"/>
+            <include refid="limitCondition"/>
+    </select>
+
+</mapper>

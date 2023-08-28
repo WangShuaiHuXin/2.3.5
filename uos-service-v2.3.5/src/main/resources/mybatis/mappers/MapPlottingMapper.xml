@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MapPlottingMapper">
+
+    <select id="queryPage" resultType="com.imapcloud.nest.pojo.vo.MapPlottingVO">
+        select
+               mp.id,
+               mp.type,
+               mp.point_list `pointStr`,
+               mp.name
+        from map_plotting mp
+        where 1 = 1
+        <if test="params.name != null and params.name != ''">
+            and mp.name = #{params.name}
+        </if>
+        <if test="params.type != null and params.type != ''">
+            and mp.type = #{params.type}
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            and mp.creator_id = #{params.userId}
+        </if>
+        ;
+    </select>
+
+    <select id="getList" resultType="com.imapcloud.nest.pojo.vo.MapPlottingVO">
+        select
+            mp.id,
+            mp.type,
+            mp.point_list `pointStr`,
+            mp.name
+        from map_plotting mp
+        where 1 = 1
+            <if test="params.name != null and params.name != ''">
+                and mp.name = #{params.name}
+            </if>
+            <if test="params.type != null and params.type != ''">
+                and mp.type = #{params.type}
+            </if>
+            <if test="params.userId != null and params.userId != ''">
+                and mp.creator_id = #{params.userId}
+            </if>
+        ;
+    </select>
+
+    <select id="listByUser" resultType="com.imapcloud.nest.pojo.vo.MapPlottingVO">
+        select
+               mp.id,
+               mp.type,
+               mp.point_list `pointStr`,
+               mp.name
+        from map_plotting mp
+        where mp.creator_id = #{userId}
+    </select>
+
+    <select id="byId" resultType="com.imapcloud.nest.pojo.vo.MapPlottingVO">
+        select
+           mp.id,
+           mp.type,
+           mp.point_list `pointStr`,
+           mp.name
+        from map_plotting mp
+        where mp.id = #{id}
+            <if test="params.userId != null and params.userId != ''">
+                and mp.creator_id = #{params.userId}
+            </if>
+    </select>
+
+</mapper>

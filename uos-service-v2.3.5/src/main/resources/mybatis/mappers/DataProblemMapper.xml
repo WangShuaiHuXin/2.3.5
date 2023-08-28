@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.DataProblemMapper">
+
+    <select id="getTaskProblemPhotoList" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT
+        tag_id AS tagId, problem_source AS problemSource, data_id, photo_time AS photoTime, lat, lng, task_id AS taskId,
+        task_name AS taskName, id AS problemId, problem_name, flag, problem_status, modify_time AS problemTime, photo_url, problem_url,
+        mission_record_id AS missionRecordId, mission_record_time AS missionRecordTime
+        FROM data_problem dp
+        WHERE deleted = 0
+        AND tag_id = #{tagId} AND flag = 1
+        AND problem_source IN
+        <foreach collection="problemSourceList" item="problemSource" index="index" open="(" close=")" separator=",">
+            #{problemSource}
+        </foreach>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(photo_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(photo_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+
+    <select id="getHZTaskProblemPhotoList" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT
+        tag_id AS tagId,st.`name` AS tagName, problem_source AS problemSource, data_id, photo_time AS photoTime, lat, lng, task_id AS taskId,
+        task_name AS taskName, dp.id AS problemId, problem_name, flag, problem_status, dp.modify_time AS problemTime, photo_url, problem_url, problem_thumb_url,
+        mission_record_id AS missionRecordId, mission_record_time AS missionRecordTime
+        FROM data_problem dp
+        LEFT JOIN sys_tag st ON st.id = dp.tag_id
+        WHERE deleted = 0
+        AND flag = 1
+        AND problem_source = #{problemSource}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(photo_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(photo_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+    
+    <select id="getTaskProblemPhotoListElectric" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT * FROM (
+        SELECT
+        gr.tag_id AS tagId, pr.type AS problemSource, t1.id as data_id, t1.create_time as
+        photoTime,t1.modify_time,t1.latitude as lat,
+        t1.longitude as lng,qr.`name` AS taskName,t2.id as id,t2.defect_content as problem_name,t2.flag as flag,
+        CASE WHEN pr.`type` = 0 OR pr.`type` = 1 THEN t2.status
+        WHEN pr.`type` = 2 THEN t3.flag ELSE NULL END as problem_status,
+        t2.create_time as problemTime,t1.photo_url as photo_url,
+        CASE WHEN pr.`type` = 0 THEN t2.defect_photo_path
+        WHEN pr.`type` = 1 THEN t2.meter_photo
+        WHEN pr.`type` = 2 THEN t3.record_url ELSE NULL END as problem_url,
+        t1.mission_records_id AS missionRecordId,tr.create_time AS missionRecordTime
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted != 1 AND t2.source in
+        <foreach collection="problemSourceList" item="problemSource" index="index" open="(" close=")" separator=",">
+            #{problemSource}
+        </foreach>
+        LEFT JOIN station_infrared_record t3 ON t3.photo_id = t1.id AND t3.deleted != 1
+        LEFT JOIN mission qr on t1.mission_id = qr.id
+        LEFT JOIN mission_records tr on t1.mission_records_id = tr.id
+        WHERE t1.deleted = 0
+        AND t1.mission_id is not null
+        AND gr.deleted = 0 AND pr.deleted = 0
+        AND gr.tag_id = #{tagId}
+        AND pr.type in
+        <foreach collection="problemSourceList" item="problemSource" index="index" open="(" close=")" separator=",">
+            #{problemSource}
+        </foreach>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND date_format(t1.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(t1.create_time, '%Y-%m-%d')
+            &lt;= #{endTime}
+        </if>
+        )a WHERE a.problem_status = 2 OR a.problem_status = 3
+    </select>
+
+    <select id="getTaskPhotoList" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskRecordPhotoDTO">
+        SELECT
+        t.id AS taskId, t.`name` AS taskName, t.create_time AS taskTime,
+        mr.id AS missionRecordId, mr.create_time AS MissionRecordTime
+        FROM mission_photo mp
+        LEFT JOIN mission_photo_tag_rel gr ON gr.mission_photo_id = mp.id
+        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id
+        LEFT JOIN mission m ON m.id = mp.mission_id
+        LEFT JOIN task t ON t.id = m.task_id
+        LEFT JOIN mission_records mr ON mr.id = mp.mission_records_id
+        WHERE mp.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+        AND gr.tag_id = #{tagId}
+        AND pr.type = #{problemSource}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(mp.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mp.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+
+
+    <select id="getPhotoListByMissionRecordId" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT
+        mp.id AS photoId, mp.`name` AS photoName, mp.latitude AS lat, mp.longitude AS lng,
+        mp.photo_url, mp.thumbnail_url AS photoThumbUrl, mp.create_time AS photoTime, gr.tag_id
+        FROM mission_photo mp
+        LEFT JOIN mission_photo_tag_rel gr ON gr.mission_photo_id = mp.id
+        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id
+        WHERE mp.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+        AND pr.type = #{problemSource}
+        AND gr.tag_id IN
+        <foreach collection="tagIdList" item="tagId" index="index" open="(" close=")" separator=",">
+            #{tagId}
+        </foreach>
+        AND mp.mission_records_id IN
+        <foreach collection="missionRecordIdList" item="missionRecordId" index="index" open="(" close=")" separator=",">
+            #{missionRecordId}
+        </foreach>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(mp.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mp.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+
+    <select id="getPhotoIdNameTagId" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.PhotoIdNameTagIdDTO">
+        SELECT
+        mp.id AS photoId, mp.`name` AS photoName, gr.tag_id AS tagId
+        FROM mission_photo mp
+        LEFT JOIN mission_photo_tag_rel gr ON gr.mission_photo_id = mp.id
+        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id
+        WHERE mp.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+        AND pr.type = #{problemSource}
+        AND gr.tag_id IN
+        <foreach collection="tagIdList" item="tagId" index="index" open="(" close=")" separator=",">
+            #{tagId}
+        </foreach>
+        AND mp.mission_records_id IN
+        <foreach collection="missionRecordIdList" item="missionRecordId" index="index" open="(" close=")" separator=",">
+            #{missionRecordId}
+        </foreach>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(mp.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mp.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+
+    <select id="getPhotoTaskInfoByPhotoId" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT mp.photo_url, mp.create_time AS photoTime, t.id AS taskId, t.`name` AS taskName, mr.id AS missionRecordId,
+               mp.latitude AS lat, mp.longitude AS lng, mr.create_time AS missionRecordTime
+        FROM mission_photo mp
+        LEFT JOIN mission_records mr ON mr.id = mp.mission_records_id
+        LEFT JOIN mission m ON m.id = mp.mission_id
+        LEFT JOIN task t ON t.id = m.task_id
+        WHERE mp.id =#{photoId}
+    </select>
+
+    <select id="getHistoryPhotoInfo" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT
+        mp.id AS photoId, mp.name AS photoName, mp.photo_url, mp.thumbnail_url AS photoThumbUrl,
+        mr.create_time AS photoTime, mp.latitude AS lat, mp.longitude AS lng
+        FROM mission_photo mp
+        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id
+        LEFT JOIN mission_records mr ON mr.id = mp.mission_records_id
+        WHERE pr.type = #{problemSource}
+        AND mp.deleted = 0 AND pr.deleted = 0
+        AND (mp.id = #{photoId}
+        <if test="missionRecordIdList != null and missionRecordIdList.size() > 0">
+        OR mp.mission_records_id IN
+        <foreach collection="missionRecordIdList" item="missionRecordId" index="index" open="(" close=")" separator=",">
+            #{missionRecordId}
+        </foreach>
+        </if>
+        )
+        <if test="latitude != null and latitude != '' and longitude != null and longitude != ''">
+            AND  mp.latitude IS NOT NULL AND  mp.longitude IS NOT NULL
+            AND (mp.latitude between #{latitude} - #{relRangeLat} AND #{latitude} + #{relRangeLat})
+            AND (mp.longitude BETWEEN #{longitude} - #{relRangeLon} AND #{longitude} + #{relRangeLon})
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mr.create_time) &gt;= #{startTime} and Date(mr.create_time) &lt;= #{endTime}
+        </if>
+        ORDER BY abs(#{latitude} - latitude), abs(#{longitude} - longitude)
+    </select>
+
+</mapper>

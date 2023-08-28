@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataEquipmentPointMapper">
+    <update id="updateOne" parameterType="com.imapcloud.nest.v2.dao.entity.DataEquipmentPointEntity">
+        UPDATE `data_equipment_point`
+        SET
+        <if test="bean.pointName != null and bean.pointName != ''">
+            `point_name` = #{bean.pointName},
+        </if>
+        <if test="bean.tagId != null and bean.tagId != ''">
+            `tag_id` = #{bean.tagId},
+        </if>
+        <if test="bean.pointLongitude != null and bean.pointLongitude != ''">
+            `point_longitude` = #{bean.pointLongitude},
+        </if>
+        <if test="bean.pointLatitude != null and bean.pointLatitude != ''">
+            `point_latitude` = #{bean.pointLatitude},
+        </if>
+        <if test="bean.pointHeight != null and bean.pointHeight != ''">
+            `point_height` = #{bean.pointHeight},
+        </if>
+        <if test="bean.panoramaDistance != null and bean.panoramaDistance != ''">
+            `panorama_distance` = #{bean.panoramaDistance},
+        </if>
+        <if test="bean.groundDistance != null and bean.groundDistance != ''">
+            `ground_distance` = #{bean.groundDistance},
+        </if>
+        <if test="bean.brief != null and bean.brief != ''">
+            `brief` = #{bean.brief},
+        </if>
+        <if test="bean.deleted != null and bean.deleted != ''">
+            `deleted` = #{bean.deleted},
+        </if>
+        `modifier_id` = #{bean.modifierId},
+        `modified_time` = now()
+        WHERE
+        point_id=#{bean.pointId}
+    </update>
+
+    <update id="deleteBatch" parameterType="java.lang.String">
+        UPDATE `data_equipment_point`
+        set deleted='1'
+        where point_id in
+        <foreach collection="list" item="bean" separator="," close=")" open="(">
+            #{bean}
+        </foreach>
+    </update>
+</mapper>

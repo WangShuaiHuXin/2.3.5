@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MultiNestMissionDefaultRoleMapper">
+<!--    <resultMap id="MultiNestMissionDefaultRoleEntity" type="com.imapcloud.nest.model.MultiNestMissionDefaultRoleEntity">-->
+<!--        <id column="id" property="id"></id>-->
+<!--    </resultMap>-->
+    <select id="batchSelectMissionIdByNestIds" resultType="java.lang.Integer">
+        SELECT mission_id
+        FROM multi_nest_mission_default_role
+        WHERE nest_id
+        IN
+        <foreach collection="nestIds" open="(" close=")" separator="," item="nestId">
+            #{nestId}
+        </foreach>
+    </select>
+</mapper>

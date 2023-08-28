@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.InspectionPlanMissionMapper">
+
+    <select id="listAllPlanMissionIgnoreDeleted" resultType="com.imapcloud.nest.model.InspectionPlanMissionEntity">
+        SELECT *
+        FROM inspection_plan_mission
+        WHERE
+        plan_id IN
+        <if test="planIds != null and planIds.size() > 0">
+            <foreach collection="planIds" open="(" item="planId" separator="," close=")">
+                #{planId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="queryDetail" resultType="com.imapcloud.nest.v2.dao.po.out.NhOrderPlanMisOutPO">
+        SELECT
+        a.plan_id planID,b.name missionName ,c.type missionType,c.id taskId ,b.id missionId
+        FROM
+        inspection_plan_mission a
+        left join
+        mission b
+        on a.mission_id=b.id
+        left JOIN
+        task c
+        on c.id=b.task_id
+        WHERE
+        a.plan_id in
+        <foreach collection="planIds" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+        and a.deleted='0'
+
+    </select>
+</mapper>

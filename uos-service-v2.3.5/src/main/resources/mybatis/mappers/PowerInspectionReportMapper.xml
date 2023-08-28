@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerInspectionReportMapper">
+
+    <insert id="saveBatch" parameterType="com.imapcloud.nest.v2.dao.entity.PowerInspectionReportInfoEntity">
+
+        INSERT INTO `power_inspection_report_info` (
+        `id`,
+        `inspection_report_id`,
+        `org_code`,
+        `deleted`,
+        `screenshoot_url`,
+        `inspection_url`,
+        `thumbnail_url`,
+        `inspection_photo_id`,
+        `component_id`,
+        `equipment_id`,
+        `insepction_type`,
+        `inspection_result`,
+        `inspection_conclusion`,
+        `alarm_reason`,
+        `photography_time`,
+        `region_rel_id`,
+        `equipment_name`,
+        `component_name`,
+        `equipment_type`,
+        `spacing_unit_name`,
+        `voltage_name`,
+        `creator_id`,
+        `created_time`,
+        `modifier_id`,
+        `modified_time`
+        )
+        VALUES
+        <foreach collection="list" item="bean" separator=",">(
+            null,
+            #{bean.inspectionReportId},
+            #{bean.orgCode},
+            #{bean.deleted},
+            #{bean.screenshootUrl},
+            #{bean.inspectionUrl},
+            #{bean.thumbnailUrl},
+            #{bean.inspectionPhotoId},
+            #{bean.componentId},
+            #{bean.equipmentId},
+            #{bean.insepctionType},
+            #{bean.inspectionResult},
+            #{bean.inspectionConclusion},
+            #{bean.alarmReason},
+            #{bean.photographyTime},
+            #{bean.regionRelId},
+            #{bean.equipmentName},
+            #{bean.componentName},
+            #{bean.equipmentType},
+            #{bean.spacingUnitName},
+            #{bean.voltageName},
+            #{bean.creatorId},
+            #{bean.createdTime},
+            #{bean.modifierId},
+            #{bean.modifiedTime}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

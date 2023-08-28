@@ -1,0 +1,362 @@
+### geoai-uos-service服务应用全量配置模板 ###
+##@ 配置优先级：系统配置 ＞ nacos配置 ＞ springboot规则配置 @##
+##@ 注意：如果接入了nacos配置中心，则相同配置项字段以nacos配置为准，当前配置文件中配置不生效 @##
+## spring 相关配置 ##
+spring:
+  ## MySQL数据库相关配置
+  datasource:
+    url: jdbc:mysql://139.159.188.26:13306/nest_dev?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: dbzkytdev@2022
+#    password: ENC(zIsTaFQYZ6p5rExpG0PiWtZWLDf2GpvNktcFFXA5liYOJ+SdZXZlidB5eBIcE2Uv)
+  ## Redis相关配置
+  redis:
+    # dev:db1, hotfix:db2, test01:db3, test02:db4
+    database: 1
+    host: 124.71.10.164
+    port: 16379
+    password: rdszkyt@2022
+#    password: ENC(06VqqwjJpeEjWqy1l+QOfApXjlkUNjxzcduGzulhpJO/ByVnP6wR9lfhRsoKu/63)
+    # 连接超时300毫秒
+    timeout: 5000
+    lettuce:
+      shutdown-timeout: 1000
+      pool:
+        max-active: 8 #连接池最大连接数
+        max-idle: 8 #连接池中的最大空闲连接
+        max-wait: 30 # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        min-idle: 1 # 连接池中的最小空闲连接
+      cluster:
+        refresh:
+          adaptive: true
+          period: 20
+  data:
+    ## mongo数据库相关配置
+    mongodb:
+      uri: mongodb://zkyt:zkyt2022@124.71.10.164:27017/nest-dev
+      authentication-database: admin
+      # 连接池大小
+      connections-per-host: 4
+      # 最小连接池大小
+      min-connections-per-host: 4
+  ## quartz定时任务相关配置
+  quartz:
+    #持久化到数据库方式
+    job-store-type: jdbc
+    #quartz调度程序属性
+    properties:
+      org:
+        quartz:
+          scheduler:
+            #调度任务实例名称，如果是集群则每个实例必须是相同的名字
+            instanceName: nestScheduler
+            #实例ID，对于集群中工作的所有调度器必须是唯一的，如果值是AUTO则会自动生成，如果希望值来自系统属性则设置为SYS_PROP
+            instanceId: AUTO
+          jobStore:
+            #job、traggers、calendars持久化实现类，默认：org.quartz.simpl.RAMJobStore
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            #调度程序下次触发时间的毫秒数，默认是60000（60 seconds）
+            misfireThreshold: 60000
+            #驱动程序代理类
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            #表名前缀，默认：QRTZ_
+            tablePrefix: QRTZ_
+            #默认：false，设置JDBCJobStore的JobDataMaps中存储的是字符串类型的key-value,否则为 true
+            useProperties: false
+            #设置为true以启用集群功能，如果Quartz的多个实例使用同一组数据库表，则必须将此属性设置为true,否则将遇到严重的破话，默认：false
+            isClustered: false
+            #设置此实例与集群的其它实例"checks-in"的频率（毫秒），影响实例的检测失败速率，默认：15000
+            clusterCheckinInterval: 10000
+          #配置线程池
+          threadPool:
+            #要使用的线程池实心名称，与Quartz自带的线程池应该可以满足几乎每个用户的需求，它的行为非常简单，而且已经过很好的测试，它提供了一个固定大小的线程池，这些线程在调度程序的生存期内"生存"
+            class: org.quartz.simpl.SimpleThreadPool
+            #线程数
+            threadCount: 10
+            #线程优先级，可以是Thread.MIN_PRIORITY（1）和Thread.MAX_PRIORITY（10）之间的数据，默认是：Thread.NORM_PRIORITY (5)
+            threadPriority: 5
+            #可以设置为true以将线程池中的线程创建为守护程序线程。默认：false
+            makeThreadsDaemons: false
+            #线程池中线程名的前缀,默认：MyScheduler_Worker
+            threadNamePrefix: nest_scheduler_worker
+            #默认true
+            threadsInheritGroupOfInitializingThread: true
+            #默认true
+            threadsInheritContextClassLoaderOfInitializingThread: true
+    jdbc:
+      # never 需要手动创建表，always 启动项目时总是默认创建表
+      initialize-schema: never
+  messages:
+    basename: "classpath*:i18n/messages,classpath*:ValidationMessages"
+  ## rocketmq相关配置
+  rocketmq:
+    endpoints: "139.9.219.45:9877"
+#    endpoints: "localhost:9877"
+    access-key: "rocketmq2"
+    secret-key: "12345678"
+    producer:
+      enabled: true
+
+## UOS服务 mybatis-plus相关配置 ##
+mybatis-plus:
+  mapperLocations: mybatis/mappers/*Mapper.xml
+  typeAliasesPackage: com.imapcloud.nest.mapper
+  global-config:
+    dbConfig:
+      capitalMode: true
+  Configuration:
+    cacheEnabled: false
+
+## 应用日志相关配置 ##
+logging:
+  level:
+#    com.imapcloud.nest.service: debug
+#    com.imapcloud.nest.mapper.InspectionPlanMapper: debug
+#    com.imapcloud.nest.mapper.InspectionPlanMissionMapper: debug
+#    com.imapcloud.nest.mapper.InspectionPlanRecordMapper: debug
+#    com.imapcloud.nest.mapper.InspectionPlanRecordMissionMapper: debug
+#    com.imapcloud.nest.mapper.NestMapper: info
+    org.quartz: info
+    com.geoai: info
+    com.imapcloud: info
+#    com.imapcloud.nest.v2.dao.mapper.*: debug
+
+## spring boot actuator 配置 ##
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: 'prometheus'
+#  metrics:
+#    tags:
+#      env: ${spring.profiles.active}
+#      application: ${spring.application.name}
+
+## OpenFeign 配置 ##
+feign:
+  circuitbreaker:
+    enabled: false
+  hystrix:
+    enabled: false
+  okhttp:
+    enabled: true
+  ## 压缩配置项
+  compression:
+    request:
+      enabled: false
+  client:
+    config:
+      uap-client:
+        logger-level: NONE
+      default:
+        connect-timeout: 3000
+        read-timeout: 2300
+        # feign client 日志级别，默认未NONE
+        logger-level: FULL
+
+## Hystrix全局配置，详细配置参照HystrixCommandProperties类 ##
+hystrix:
+  command:
+    # hystrix全局超时时间：Hystrix的超时时间 ≥ Ribbon的重试次数(含首次)*(ribbon.ReadTimeout+ribbon.ConnectTimeout)
+    default:
+      #      circuitBreaker:
+      #        sleepWindowInMilliseconds: 10
+      execution:
+        isolation.thread.timeoutInMilliseconds: 5500
+#      metrics:
+#        rollingStats.timeInMilliseconds: 10000
+
+## Ribbon配置，消息配置参照CommonClientConfigKey类 ##
+ribbon:
+  eager-load:
+    enabled: true
+  ReadTimeout: 2000
+  ConnectTimeout: 3000
+  #对所有操作都进行重试
+  OkToRetryOnAllOperations: false
+  # 对当前选中实例重试次数，不包括第一次调用
+  MaxAutoRetries: 0
+  # 切换实例的重试次数
+  MaxAutoRetriesNextServer: 0
+  # 负载策略调整
+  NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
+
+## knife4j 增强特性配置 ##
+knife4j:
+  enable: true
+  basic:
+    enable: true
+    username: geoai
+    password: geoai@2022
+#    password: ENC(mLeWldHoTFL7GImQnpkTOdlODUcTPkT4nluby1NyjtQUopRyuow/P3Jc+gTxpcem)
+  ## 自定义文档配置（用于对当前服务接口文档的特殊充说明）
+  documents:
+    -
+      name: "接口统一说明"
+      locations: "classpath:docs/readme.md"
+  setting:
+    enableSwaggerModels: true
+    swaggerModelName: "API文档对象"
+    ## 自定义 footer
+    enableFooter: false
+    enableFooterCustom: true
+    footerCustomContent: "Apache License 2.0 | Copyright &copy; 2022 - [中科云图智能科技有限公司](https://www.geoai.com)"
+
+## 应用自定义配置 ##
+geoai:
+  ## swagger2 配置
+  swagger2:
+    authenticated: true
+    enhanced-mode: true
+    doc-version: ${geoai.uos.version}
+    base-package: "com.imapcloud"
+    contact-name: "研发中心-平台部"
+    contact-email: "wumiao@geoai.com"
+    contact-url: "https://www.geoai.com/"
+    terms-of-service-url: "https://dev.uos.geoai.com"
+    doc-title: "中科云图-统一接口文档"
+    description: "geoai-uos-service接口文档，提供全方位、多功能支持"
+    token-url: "http://localhost:8183/geoai-auth-service/oauth/swagger/token"
+  uos:
+    # 系统版本号
+    version: "2.3.0"
+    # 应用日志服务器存储目录
+    log-path: "/logs"
+    # 区分内外网部署
+    inside-status: 0
+    # UOS系统默认标题
+    system-title: "无人机遥感网运营系统"
+    # UOS系统默认icon
+    system-icon: "/data/origin/unitIcon/3/20220331110818_07bceed1a077b67463ec9f521a5be8d.png"
+    # UOS系统默认favicon
+    system-favicon: "/data/origin/unitIcon/3/2807a7aa63be2f712bd797e405ab781.png"
+    ## websocket配置
+    websocket:
+      port: 8182
+    ## 天气相关配置
+    weather:
+      activate: true
+      access-key: yWxIZg0ZoZ1bvTFK
+#      access-key: ENC(JQKoD8cba+lxkGIYEC0E6B0MReEu41LGIYVO+BjQJKOzYQsUsrqM6Ym6Vm1x/YppAnAxCm4cNK0WheW8Wr/EbA==)
+    ## minio相关配置
+    minio:
+      url: "http://139.9.93.41:19000"
+      out-url: "http://139.9.93.41:19000"
+      access-key: zkyt
+      secret-key: zkytminio
+#      secret-key: ENC(CSZ0+gLqep7ldluhtCLqHmpmr2o/7CgoZ0rcA7VbE4/Y8XT8o4SioW1kitxOgZ+Z)
+      bucket-name: nest-dev
+    ## 流媒体相关配置
+    iptv:
+      activate: false
+      url: "http://172.16.0.52:8000"
+      path: "./record/manual"
+      username: zkyt
+      password: zkytnms
+#      password: ENC(6K6Ay9tpIlYprkTBGMHus98jjY9PZiKF4B0s0TstdhddMjV9NH66CrR6LhPbZO3j)
+    ## 文件上传相关配置
+    upload:
+      url: "http://124.71.10.164:8185/nest-api/missionPhoto/result/uploadPhotoV2"
+      chunk-init-path: "/nest-api/part/upload/file/initCps"
+      chunk-combine-path: "/nest-api/part/upload/file/completeCps"
+      chunk-sync-path: "/nest-api/missionPhoto/result/uploadPhotoCps"
+    ## 存储相关配置
+    store:
+      thumbnail-path: "/data/thumbnail/"
+      download-path: "/data/download/"
+      video-path: "/data/video/"
+      origin-path: "/origin/"
+      origin-rel-path: "/data/bucket/nest-dev/"
+      video-ffmpeg-path: "/ffmpeg/"
+    ## 域名相关配置
+    domain:
+      nginx: "http://124.71.10.164:8185"
+      media: "http://124.71.10.164:8185"
+      download: ${geoai.uos.domain.media}
+    ## 气体相关配置
+    gas:
+      exposed-port: 11321
+    ## mongo相关配置
+    mongo:
+      allow-saving-logs: true
+    ## 基站日志相关配置
+    nest-log:
+      upload-url: "http://124.71.10.164:8185/nest-api/nest/logs/upload/nest/logs"
+      store-path: "nestLogs/"
+    ## cps日志相关配置
+    cps-log:
+      upload-url: "http://124.71.10.164:8185/nest-api/mqtt/log/parse/upload/cps/mqtt/log/zip"
+      store-path: "cpsMqttLogs/"
+      zip-name: "mqttTraceLog"
+    ## 飞行任务队列相关配置
+    task-queue:
+      pause-retention-duration: 30
+      end-retention-duration: 10
+    ## AI识别相关配置
+    ai:
+      host: 172.16.0.50
+      port: 22
+      username: root
+      password: raddev@2022
+#      password: ENC(v8pP2WKDdJs+qmK7jnkeR+GctoFCjk22PHgVQ0YPX/Re4b+LykDzaCIofo3Bhycx)
+      origin-path: "/data/media-file/nest-dev"
+      itm-file-path: "/conda/detected/"
+      mr-file-path: "/conda/meter/"
+      other-file-path: "/data/nest/conda/otherphoto/nest-dev/"
+      other-file-path-nginx: "/conda/other/"
+      ssh-url: "http://124.71.2.215:8080"
+      itm-nginx-url: "http://121.37.220.243:8080/redFile/"
+      mr-nginx-url: "http://121.37.220.243:8080/meterFile/"
+      ics-nginx-url: "http://121.37.220.243:8080/conFile/"
+      use-huawei: false
+    ## mqtt相关配置,已废弃，请采用数据库配置
+    mqtt:
+      server-urls: ["tcp://mqtt.geoai.com", "tcp://120.76.138.18:1883", "tcp://172.16.0.61"]
+    ## iot数据库配置,内网可忽略
+    iot:
+      host: 172.16.0.50
+      port: 6667
+      username: root
+      password: root
+#      password: ENC(r958XsVODAYRUsk3tw7+VGmjkOcw0UZzCN50uUPfiUZhuLNjuPDx8F5oqMf+tbm0)
+    ## 分析应用相关配置
+    analysis:
+      # 地图展示最大问题数量
+      map-max-num: 1000
+      # 系统允许的最大AI识别任务数量，默认值100
+      ai-task-count: 100
+      # 系统允许的最大AI识别任务数量，默认值5
+      account-ai-task-count: 5
+      # AI服务器内网访问图片前缀，不配置会在创建AI任务提示相关错误
+      ai-pic-access-host: "http://124.71.10.164:8000"
+      # AI服务器识别的图片格式，默认为`jpg`
+      ai-pic-types: ["jpg"]
+      # AI分析任务主题，默认为：tx-ai_analysis_task
+      ai-task-topic: "tx-demo_topic"
+      # AI分析任务超时检查主题，默认为：delay-uos_ai_task_timeout_check
+      ai-task-timeout-check-topic: "delay-demo_topic"
+      # 单个AI图片超时处理时间，默认值：30000ms
+      ai-pic-timeout: 30000
+      # AI视频流识别任务超时检查主题，默认为：delay-uos_ai_stream_check
+      ai-stream-ttl-topic: "delay-uos_ai_stream_check-dev"
+      # AI视频流任务超时时间（单位：ms），默认值：3600000ms
+      ai-stream-ttl: 3600000
+    dji:
+      #大疆航线凭证过期时间 秒 24*60*60 = 86400
+      syn-timeout: 86400
+    rocketmq:
+      file-topic: normal-uos_file-dev
+    ## 内外穿透工具配置
+    frpc:
+      # 内外穿透工具服务端地址
+      server-host: "dev.uos.geoai.com"
+      # 内外穿透工具服务端访问端口，默认为：8888
+      server-port: 7001
+      # 内外穿透工具服务端访问口令
+      server-password: "admin"
+      # 内外穿透工具服务端代理端口最小值，默认为：10000
+      proxy-port-min: 10000
+      # 内外穿透工具服务端代理端口最大值，默认为：11000
+      proxy-port-max: 11000
+      # 内外穿透访问地址获取超时时间，默认为：5S
+      acquire-timeout: 5S

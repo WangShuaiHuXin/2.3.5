@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.WorkVectorsInfoMapper">
+    <insert id="saveBatch" parameterType="com.imapcloud.nest.v2.dao.entity.WorkVectorsInfoEntity">
+        INSERT INTO work_vectors_info
+        ( `id`,
+        `order_id`,
+        `vector_id`,
+        `name`,
+        `type`,
+        `points`,
+        `created_time`,
+        `creator_id`,
+        `modifier_id`,
+        `modified_time`,
+        `deleted`,
+        `sequence` )
+        VALUES
+        <foreach collection="list" item="bean" separator=",">( null,
+            #{bean.orderId},
+            #{bean.vectorId},
+            #{bean.name},
+            #{bean.type},
+            #{bean.points},
+            #{bean.createdTime},
+            #{bean.creatorId},
+            #{bean.modifierId},
+            #{bean.modifiedTime},
+            '0',
+            #{bean.sequence}
+            )
+        </foreach>
+    </insert>
+</mapper>

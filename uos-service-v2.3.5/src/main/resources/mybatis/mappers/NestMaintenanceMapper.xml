@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.NestMaintenanceMapper">
+
+    <select id="queryPage" resultType="com.imapcloud.nest.pojo.vo.NestMaintenancePageVO">
+        select nm.id,
+               nm.type,
+               nm.start_time as startTime,
+               nm.end_time as endTime,
+               nm.staff,
+               nm.remarks,
+               nm.project maintainName
+        from `nest_maintenance` nm
+        <where>
+            <if test="params.nestId != null and params.nestId != ''">
+                and nm.nest_id = #{params.nestId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getExportNestMaintenance" resultType="com.imapcloud.nest.pojo.vo.NestMaintenancePageVO">
+        select nm.id,
+               nm.type,
+               nm.start_time as startTime,
+               nm.end_time as endTime,
+               nm.staff,
+               nm.project maintainName
+        from `nest_maintenance` nm
+        where nm.nest_id = #{nestId}
+    </select>
+
+    <select id="getNestMaintenanceRecordPage" resultType="com.imapcloud.nest.pojo.vo.NestMaintenanceVO">
+        select nm.id,
+        nm.type,
+        nm.start_time,
+        nm.end_time,
+        nm.staff,
+        nm.remarks,
+        nm.project,
+        nm.battery_index
+        from `nest_maintenance` nm
+        where 1=1 and nm.deleted = 0
+        <if test="startTimeDate != null">
+            AND nm.start_time >= #{startTimeDate}
+        </if>
+        <if test="startTimeDate != null and endTimeDate != null">
+            AND nm.end_time &lt;= #{endTimeDate}
+        </if>
+        <if test="nestId != null and nestId != null">
+            AND nm.base_nest_id = #{nestId}
+        </if>
+    </select>
+
+    <select id="getNestMaintenanceRecordExport" resultType="com.imapcloud.nest.pojo.vo.NestMaintenanceExportVO">
+        SELECT
+            n.nest_id as nestId -- 基站ID
+            ,1 as num -- 序号
+            ,n.address	as nestAddress -- 机巢地址
+            ,'' as orgName -- 单位
+            ,n.type as devType -- 设备类型
+            ,n.number as devNo -- 设备编号
+            ,n.name as nestName -- 基站名称
+            ,nm.type as type -- 维保类型
+            ,concat(nm.start_time,"-",nm.end_time) as maintainTime -- 维修时间
+            ,nm.maintain_name as projectName -- 维保项目
+            ,'' as damagePart -- 损坏部件
+            ,nm.staff as staff -- 维保人员
+        FROM
+            nest_maintenance nm
+            LEFT JOIN base_nest n ON nm.base_nest_id = n.nest_id
+        WHERE
+            1 = 1
+        AND nm.deleted = 0
+        AND n.deleted = 0
+        <if test="startTimeDate != null">
+            AND nm.start_time >= #{startTimeDate}
+        </if>
+        <if test="startTimeDate != null and endTimeDate != null">
+            AND nm.end_time &lt;= #{endTimeDate}
+        </if>
+        <if test="nestIds != null and nestIds !=''">
+            AND nm.base_nest_id IN
+            <foreach collection="nestIds" open="(" close=")" separator="," item="nestId">
+                #{nestId}
+            </foreach>
+        </if>
+        order by n.nest_id
+    </select>
+
+
+</mapper>

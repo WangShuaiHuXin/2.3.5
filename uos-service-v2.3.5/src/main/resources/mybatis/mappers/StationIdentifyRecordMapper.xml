@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.StationIdentifyRecordMapper">
+
+
+    <select id="getPhotoListPage" resultType="com.imapcloud.nest.pojo.dto.StationIdentifyPhotoDTO">
+        SELECT t1.id, t1.name AS pic_name, t1.photo_url, t1.thumbnail_url, t1.time_created, t2.id AS sid, t2.meter_num, t2.meter_photo, gr.tag_id,
+        t2.meter_num1,t2.meter_type,t2.status as flag
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted = 0
+        WHERE t1.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+        AND gr.tag_id = #{tagId}
+        AND pr.type = 1
+        <if test="name != null and name != ''">
+        	AND t1.name =#{name}
+        </if>
+        <if test="defectStatus != null and defectStatus == 0">
+            AND (t2.status = #{defectStatus} or t2.status is null)
+        </if>
+        <if test="defectStatus != null and defectStatus != 0">
+            AND t2.status = #{defectStatus}
+        </if>
+        <if test="missionRecordId != null and missionRecordId != ''">
+        	AND t1.mission_records_id = #{missionRecordId}
+        </if>
+        <!--ORDER BY IF(ISNULL(t2.meter_num),0,1),t1.modify_time DESC-->
+        ORDER BY t1.time_created DESC
+    </select>
+
+    <select id="getAllPhotoMeterNum" resultType="com.imapcloud.nest.pojo.dto.StationDevicePhotoDTO">
+        SELECT AVG(t.meter_num) AS meterNum, AVG(t.meter_num1) AS meterNum1,DATE_FORMAT(t.create_time,'%Y-%m-%d') AS photoModifyTime
+        FROM (
+            SELECT t1.meter_num, t1.meter_num1,t2.time_created as create_time
+            FROM station_identify_record t1
+            LEFT JOIN mission_photo t2 ON t2.id = t1.photo_id
+            INNER JOIN mission_photo_tag_rel gr on t2.id = gr.mission_photo_id
+            INNER JOIN mission_photo_type_rel pr on t2.id = pr.mission_photo_id
+            WHERE t2.deleted = 0 AND t1.deleted = 0 AND t2.`name` = #{photoName}
+            AND gr.deleted = 0 AND pr.deleted = 0
+            AND gr.tag_id = #{tagId}
+            AND pr.type = 1
+            <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+                AND Date(t2.time_created) &gt;= #{startTime} and Date(t2.time_created) &lt;= #{endTime}
+            </if>
+        ) t
+        GROUP BY DATE_FORMAT(t.create_time,'%Y-%m-%d')
+        ORDER BY DATE_FORMAT(t.create_time,'%Y-%m-%d') ASC
+    </select>
+
+    <select id="getDefectListByUser" resultType="com.imapcloud.nest.pojo.dto.DefectPhotoDTO">
+    SELECT t2.id AS photo_id, t2.latitude AS lat, t2.longitude AS lng,
+        t1.*, t4.type, t2.nest_id AS nestId, t3.tag_id AS tagId, DATE_FORMAT(t1.modify_time,'%Y-%m-%d') AS photoTime, t1.modify_time AS defectTime
+        FROM mission_photo t2
+        INNER JOIN mission_photo_tag_rel t3 on t2.id = t3.mission_photo_id
+        INNER JOIN mission_photo_type_rel t4 on t2.id = t4.mission_photo_id
+        INNER JOIN station_identify_record t1 on t2.id = t1.photo_id
+        WHERE t2.deleted = 0 AND (t2.task_id is not null or t2.mission_id is not null) AND t3.deleted = 0 AND t4.deleted = 0 AND t1.deleted = 0
+        <if test="type == 0">
+            AND (t1.`status` = 2 OR t1.`status` = 3)
+        </if>
+        <if test="type == 1">
+            AND t1.flag = 1
+        </if>
+        <if test="type != null">
+        AND t4.type = #{type} AND t1.source = #{type}
+        </if>
+        <if test="userId != null and userId != ''">
+        AND (t2.nest_id IN (SELECT id FROM base_nest_account WHERE account_id = #{userId}) OR t2.source = 2)
+        AND (t3.tag_id IN (SELECT id FROM sys_tag WHERE org_code = #{orgCode}))
+        </if>
+        <if test="userId == null or userId == ''">
+            AND (t3.tag_id IN (SELECT id FROM sys_tag))
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(t2.modify_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(t2.modify_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+
+
+    
+    <select id="getDefectNum" resultType="com.imapcloud.nest.pojo.dto.DefectPhotoDTO">
+    SELECT COUNT(t1.id) AS num, DATE_FORMAT(t2.create_time,'%Y-%m-%d') AS photoTime
+        FROM mission_photo t2
+        INNER JOIN mission_photo_tag_rel t3 on t2.id = t3.mission_photo_id
+        INNER JOIN mission_photo_type_rel t4 on t2.id = t4.mission_photo_id
+        INNER JOIN station_identify_record t1 on t2.id = t1.photo_id
+        WHERE t2.deleted = 0 AND (t2.task_id is not null or t2.mission_id is not null) AND t3.deleted = 0 AND t4.deleted = 0 AND t1.deleted = 0  AND t4.type = #{type} AND t1.source = #{type}
+        <if test="type != 1">
+            AND (t1.`status` = 2 or t1.`status` = 3)
+        </if>
+        <if test="type == 1">
+            AND t1.flag = 1
+        </if>
+        <if test="userId != null">
+            <!-- 原有版本就是这么写，不知道咋改 -->
+            <!-- AND (t2.nest_id = #{userId} OR t2.source = 2)  -->
+            AND (t3.tag_id IN (SELECT id FROM sys_tag WHERE org_code = #{orgCode}) OR t3.tag_id = -1)
+        </if>
+        <if test="userId == null">
+            AND (t3.tag_id IN ((SELECT id FROM sys_tag)) OR t3.tag_id = -1)
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t2.modify_time) &gt;= #{startTime} and Date(t2.modify_time) &lt;= #{endTime}
+        </if>
+    GROUP BY DATE_FORMAT(t2.create_time,'%Y-%m-%d')
+    ORDER BY DATE_FORMAT(t2.create_time,'%Y-%m-%d') DESC
+    </select>
+
+</mapper>

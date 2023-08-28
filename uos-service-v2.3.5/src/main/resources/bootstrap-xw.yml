@@ -1,0 +1,45 @@
+### 引导启动配置-西瓜环境（vastfy） ###
+## spring cloud相关配置 ##
+spring:
+  cloud:
+    # 忽略多网卡获取IP问题
+    inetutils:
+      ignored-interfaces: [ 'VMware.*' ]
+    nacos:
+      # 注册中心
+      discovery:
+        server-addr: "139.9.219.45:8848"
+        namespace: "14df6772-fbb7-4a9c-9913-35c4443f8982"
+#        server-addr: "localhost:8848"
+#        namespace: "vastfy"
+      # 配置中心
+      config:
+        group: ${spring.application.name}
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - data-id: geoai-common.yml
+            refresh: true
+
+geoai:
+  config:
+    encrypt:
+      print-strings:
+        - "dbzkytdev@2022"
+        - "rdszkyt@2022"
+        - "geoai@2022"
+        - "yWxIZg0ZoZ1bvTFK"
+        - "zkytminio"
+        - "zkytnms"
+        - "raddev@2022"
+        - "root"
+## 加密秘钥，需要在配置在系统配置中
+jasypt:
+  encryptor:
+    password: "geoai&local@2022#!"
+
+logging:
+  level:
+    org.jeecg.modules.hdx.mapper: debug

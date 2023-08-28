@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.DataMultispectralMapper">
+
+    <select id="getMissionRecords" resultType="com.imapcloud.nest.model.MissionRecordsEntity">
+        SELECT
+        distinct mr.*,t.`name` as task_name,t.id as task_id
+        FROM
+        mission_records mr
+        INNER JOIN data_multispectral d ON mr.id = d.mission_records_id
+        INNER JOIN mission m on mr.mission_id = m.id
+        INNER JOIN task t on m.task_id = t.id
+        WHERE
+        mr.deleted = 0
+        AND d.deleted = 0
+        AND m.deleted = 0
+        AND t.deleted = 0
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and Date(mr.create_time) between #{startTime} and #{endTime}
+        </if>
+        order by mr.create_time desc
+    </select>
+</mapper>

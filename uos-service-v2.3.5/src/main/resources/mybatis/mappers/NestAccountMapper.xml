@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.NestAccountMapper">
+
+    <insert id="insertBatch">
+        INSERT INTO base_nest_account(account_id, base_nest_id, creator_id, modifier_id, nest_control_status)
+        VALUES
+        <foreach collection="records" item="record" separator=",">
+            (#{record.accountId}, #{record.baseNestId}, #{record.creatorId}, #{record.modifierId},
+            #{record.nestControlStatus})
+        </foreach>
+    </insert>
+
+    <sql id="tableName">base_nest_account</sql>
+
+    <!-- 左连接查询SQL -->
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT
+        #{restrict.limit} OFFSET
+        #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.nestId != null">
+            AND t0.nest_id = #{criteria.nestId}
+        </if>
+        <if test="criteria.accountId != null">
+            AND t0.account_id = #{criteria.accountId}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(*)
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.NestAccountEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+    <select id="selectNestUuidByAccountId" resultType="string">
+        SELECT distinct n.uuid
+        FROM base_nest n,
+             base_nest_account bna
+        WHERE n.nest_id = bna.base_nest_id
+          AND n.deleted = 0
+          AND bna.deleted = 0
+          AND bna.account_id = #{accountId};
+    </select>
+
+</mapper>

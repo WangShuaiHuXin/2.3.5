@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.TaskMapper">
+
+    <update id="batchSoftDeleteByIds" parameterType="java.util.List">
+        UPDATE task SET deleted = 1 WHERE id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectBaseNestIdByRecordsId" resultType="string" parameterType="int">
+        SELECT t1.base_nest_id
+        FROM task t1,
+             mission t2,
+             mission_records t3
+        WHERE t1.id = t2.task_id
+          AND t2.id = t3.mission_id
+          AND t3.deleted = 0
+          AND t3.id = #{missionRecordsId}
+    </select>
+
+    <select id="selectDjiStartTaskParamDTOByMissionId" resultType="com.imapcloud.nest.pojo.dto.DjiStartTaskParamDTO" parameterType="int">
+        SELECT
+            t.NAME task_name,
+            m.name mission_name,
+            t.base_nest_id base_nest_id,
+            t.id task_id,
+            t.type task_type ,
+            mp.start_stop_point_altitude rth_altitude
+        FROM
+            mission m,
+            task t,
+            mission_param mp
+        WHERE
+            m.task_id = t.id
+          AND mp.id = m.mission_param_id
+          AND m.id = #{missionId}
+    </select>
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.UosNestDeviceRefMapper">
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.UosNestDeviceRefEntity">
+        insert into uos_nest_device_ref(nest_id, device_id, device_use, creator_id, modifier_id, created_time, modified_time)
+        values
+        <foreach collection="entityList" item="item" open="" separator="," close="">
+            (#{item.nestId}, #{item.deviceId}, #{item.deviceUse}, #{item.creatorId}, #{item.modifierId}, #{item.createdTime}, #{item.modifiedTime})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="com.imapcloud.nest.v2.dao.entity.UosNestDeviceRefEntity">
+        <foreach collection="entityList" item="item" separator=";">
+            update uos_nest_device_ref set device_id=#{item.deviceId}, device_use=#{item.deviceUse},
+            modifier_id=#{item.modifierId},modified_time=#{item.modifiedTime}
+            where nest_id=#{item.nestId} and device_use=#{item.deviceUse}
+        </foreach>
+    </update>
+
+    <select id="findByNestId" resultType="com.imapcloud.nest.v2.service.dto.out.UosNestDeviceRefOutDTO">
+        SELECT nest_id, device_id, device_use
+        FROM uos_nest_device_ref where nest_id = #{nestId} and deleted = 0
+    </select>
+</mapper>

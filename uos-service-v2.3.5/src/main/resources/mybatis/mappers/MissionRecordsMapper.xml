@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MissionRecordsMapper">
+
+    <resultMap id="MissionRecordsEntityMap" type="com.imapcloud.nest.model.MissionRecordsEntity">
+        <id property="id" column="id"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="execId" column="exec_id"/>
+        <result property="status" column="status"/>
+        <result property="uploadTime" column="upload_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="dataStatus" column="data_status"/>
+        <result property="dataPath" column="data_path"/>
+        <result property="videoPath" column="video_path"/>
+        <result property="dataSize" column="data_size"/>
+        <result property="miles" column="miles"/>
+        <result property="seconds" column="seconds"/>
+        <result property="reachIndex" column="reach_index"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="deleted" column="deleted"/>
+
+    </resultMap>
+
+    <update id="updateBatchByExecId" parameterType="arraylist">
+        UPDATE mission_records
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="seconds = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    WHEN exec_id=#{item.execId} THEN #{item.seconds}
+                </foreach>
+            </trim>
+            <trim prefix="miles = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    WHEN exec_id=#{item.execId} THEN #{item.miles}
+                </foreach>
+            </trim>
+            <trim prefix="end_time = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    WHEN exec_id=#{item.execId} THEN #{item.endTime}
+                </foreach>
+            </trim>
+        </trim>
+    </update>
+
+    <update id="updatePart5ByExecId" parameterType="com.imapcloud.nest.model.MissionRecordsEntity">
+        UPDATE mission_records
+        <trim prefix="set" suffixOverrides=",">
+            <if test="endTime != null">
+                end_time = #{endTime},
+            </if>
+            <if test="miles != null">
+                miles = #{miles},
+            </if>
+            <if test="seconds != null">
+                seconds = #{seconds},
+            </if>
+            <if test="reachIndex != null">
+                reach_index = #{reachIndex},
+            </if>
+            <if test="backUpStatus != null">
+                back_up_status = #{backUpStatus},
+            </if>
+            <if test="status != null">
+                status = #{status}
+            </if>
+
+        </trim>
+        WHERE exec_id = #{execId}
+    </update>
+
+    <select id="getMissionRecordById" resultMap="MissionRecordsEntityMap">
+        SELECT exec_id, mission_id, status, data_status, reach_index
+        FROM mission_records
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateDataStatusById" parameterType="int">
+        UPDATE mission_records
+        SET data_status = #{dataStatus}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateBackUpStatusByExecId">
+        UPDATE mission_records
+        SET back_up_status = #{status}
+        WHERE exec_id = #{execId}
+    </update>
+
+    <select id="getByExecId" resultMap="MissionRecordsEntityMap" parameterType="string">
+        SELECT id, mission_id, status, data_status
+        FROM mission_records
+        WHERE exec_id = #{execId}
+    </select>
+
+    <select id="getDataStatusById" resultType="java.lang.Integer">
+        SELECT data_status
+        FROM mission_records
+        WHERE id = #{id}
+    </select>
+
+    <select id="getGainDataModeById" resultType="java.lang.Integer">
+        SELECT gain_data_mode
+        FROM mission_records
+        WHERE id = #{id}
+    </select>
+
+    <select id="getDataPathById" resultType="string">
+        SELECT data_path
+        FROM mission_records
+        WHERE id = #{id}
+    </select>
+
+    <select id="getRecordTotalMilesAndTime" resultType="map">
+        SELECT ROUND(SUM(t3.predic_miles)/1000,2) AS totalMiles, ROUND(SUM(t3.predic_time)/60,0) totalTime
+        FROM mission_records t1
+        LEFT JOIN mission t2 ON t2.id = t1.mission_id
+        LEFT JOIN air_line t3 ON t3.id = t2.air_line_id
+        LEFT JOIN task t4 ON t4.id = t2.task_id
+        LEFT JOIN base_nest t5 ON t5.nest_id = t4.nest_id
+        LEFT JOIN base_nest_account t6 ON t6.nest_id = t4.nest_id
+        and t6.deleted=0
+        LEFT JOIN base_nest_org_ref t7 ON t5.nest_id = t7.nest_id
+        <where>
+            <if test="orgCode != null and orgCode !=''">
+                <if test="userId != null and userId !=''">
+                    AND ((t7.org_code = #{orgCode} AND t6.creator_id = #{userId}) OR t4.org_code = #{orgCode})
+                </if>
+                <if test="userId == null || userId ==''">
+                    AND (t7.org_code = #{orgCode} OR t4.org_code = #{orgCode})
+                </if>
+            </if>
+            <if test="type == 1">
+                AND t1.create_time >= DATE_SUB(NOW(),INTERVAL 7 DAY)
+            </if>
+            <if test="type == 2">
+                AND t1.create_time >= DATE_SUB(NOW(),INTERVAL 1 MONTH)
+            </if>
+        </where>
+    </select>
+
+    <select id="getMissionRecordPageList" resultType="com.imapcloud.nest.pojo.dto.MissionRecordsTotalDTO">
+        SELECT * FROM
+        (SELECT
+        DISTINCT t1.id AS recordId, t1.create_time AS createTime, t1.create_user_id AS createUserId,
+        t3.id AS taskId, t3.`name` AS taskName, t3.type AS taskType,
+        t6.nest_id AS nestId, t6.`name` AS nestName, t6.type AS nest_type, t2.seq_id AS seqId
+        FROM mission_records t1
+        LEFT JOIN mission t2 ON t2.id = t1.mission_id
+        LEFT JOIN task t3 ON t3.id = t2.task_id
+        LEFT JOIN sys_task_tag t4 ON t4.task_id = t2.task_id
+        LEFT JOIN sys_tag t5 ON t5.id = t4.tag_id
+        LEFT JOIN base_nest t6 ON t6.nest_id = t3.base_nest_id
+        LEFT JOIN base_nest_account t8 ON t8.base_nest_id = t3.base_nest_id AND t3.base_nest_id IS NOT NULL
+        and t8.deleted=0
+        WHERE t1.deleted = 0 and t6.deleted = 0 and t1.exec_id != ''
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t3.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        <if test="accountId !=null and accountId != ''">
+            AND t8.account_id = #{accountId}
+        </if>
+        ORDER BY t1.create_time DESC) tt1
+        UNION
+        SELECT * FROM
+        (SELECT
+        DISTINCT t1.id AS recordId, t1.create_time AS createTime, t1.create_user_id AS createUserId,
+        t3.id AS taskId, t3.`name` AS taskName, t3.type AS taskType,
+        t7.app_id AS appId, t7.`name` AS appName,'-10000' AS nest_type, t2.seq_id AS seqId
+        FROM mission_records t1
+        LEFT JOIN mission t2 ON t2.id = t1.mission_id
+        LEFT JOIN task t3 ON t3.id = t2.task_id
+        LEFT JOIN base_app t7 ON t7.app_id = t1.base_app_id AND t1.base_app_id IS NOT NULL
+        LEFT JOIN base_nest_account t8 ON t8.base_nest_id = t3.base_nest_id AND t3.base_nest_id IS NOT NULL
+        and t8.deleted=0
+        WHERE t1.deleted = 0 AND t7.deleted = 0
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t3.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        <if test="accountId !=null and accountId != ''">
+            AND t8.account_id = #{accountId}
+        </if>
+        ORDER BY t1.create_time DESC) tt2
+    </select>
+
+    <select id="getMissionRecordListBy" resultType="com.imapcloud.nest.model.MissionRecordsEntity">
+        SELECT mr.*
+        FROM mission_records mr
+        WHERE mr.deleted = 0
+        and mr.exec_id != ''
+        <if test="missionIds != null and missionIds.size() > 0">
+            and mr.mission_id in
+            <foreach collection="missionIds" item="item" open="(" close=")" separator=",">
+                <!-- 每个遍历需要生成的串 -->
+                #{item}
+            </foreach>
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mr.create_time) &gt;= #{startTime} and Date(mr.create_time) &lt;= #{endTime}
+        </if>
+        ORDER BY mr.id DESC
+    </select>
+    <select id="getMissionRescordsByNest" resultType="com.imapcloud.nest.pojo.dto.MissionRecordsStatisticsDto">
+        SELECT COUNT(mr.id) AS inspectTimes, bn.`name` AS sysTagName,t.base_nest_id AS baseNestId
+        FROM mission_records mr
+        INNER JOIN mission m ON m.id = mr.mission_id AND m.deleted = 0
+        INNER JOIN task t ON t.id = m.task_id AND t.deleted = 0
+        INNER JOIN base_nest bn ON bn.nest_id = t.base_nest_id AND t.base_nest_id != 0
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t.org_code LIKE #{orgCodeLike}
+        </if>
+        WHERE mr.deleted = 0
+        GROUP BY bn.id
+        ORDER BY inspectTimes DESC
+        /*LIMIT 5*/
+    </select>
+
+    <select id="getTaskIdByRecordsId" resultType="Integer">
+        SELECT t.id
+        FROM task t
+                 LEFT JOIN mission m ON m.task_id = t.id
+                 LEFT JOIN mission_records mr ON mr.mission_id = m.id
+        WHERE mr.id = #{missionRecordsId}
+    </select>
+
+    <select id="getMissionRecordsIdByTaskId" resultType="Integer">
+        SELECT id
+        FROM mission_records mr
+        WHERE mission_id IN (SELECT id FROM mission WHERE task_id = #{taskId})
+    </select>
+    <select id="getTotalInspectTimes" resultType="java.util.Map">
+        select count(id) as totalTimes,sum(CASE TO_DAYS(create_time)
+        WHEN TO_DAYS(NOW()) THEN
+        1
+        ELSE
+        0
+        END) as totayTimes from (
+        SELECT id,create_time FROM
+        (SELECT DISTINCT t1.id, t1.create_time
+        FROM mission_records t1
+        LEFT JOIN mission t2 ON t2.id = t1.mission_id
+        LEFT JOIN task t3 ON t3.id = t2.task_id
+        LEFT JOIN sys_task_tag t4 ON t4.task_id = t2.task_id
+        LEFT JOIN sys_tag t5 ON t5.id = t4.tag_id
+        LEFT JOIN base_nest t6 ON t6.nest_id = t3.base_nest_id
+        LEFT JOIN base_nest_org_ref t7 ON t7.nest_id = t3.base_nest_id
+        LEFT JOIN base_nest_account t8 ON t8.base_nest_id = t3.base_nest_id AND t3.base_nest_id IS NOT NULL
+        and t8.deleted=0
+        WHERE t1.deleted = 0 and t6.deleted = 0 and t1.exec_id != ''
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t3.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        <if test="accountId !=null and accountId != ''">
+            AND t8.account_id = #{accountId}
+        </if>
+        ORDER BY t1.create_time DESC) tt1
+        UNION
+        SELECT id,create_time FROM
+        (SELECT
+        DISTINCT t1.id, t1.create_time
+        FROM mission_records t1
+        LEFT JOIN mission t2 ON t2.id = t1.mission_id
+        LEFT JOIN task t3 ON t3.id = t2.task_id
+        LEFT JOIN base_app t7 ON t7.app_id = t1.base_app_id AND t1.base_app_id IS NOT NULL
+        LEFT JOIN base_nest_account t8 ON t8.nest_id = t3.nest_id AND t3.nest_id IS NOT NULL
+        and t8.deleted=0
+        WHERE t1.deleted = 0 AND t7.deleted = 0
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t3.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        <if test="accountId !=null and accountId != ''">
+            AND t8.account_id = #{accountId}
+        </if>
+        ORDER BY t1.create_time DESC) tt2) u
+    </select>
+
+    <sql id="tableName">mission_records</sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.modify_time DESC , t0.id DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.startTime != null and criteria.startTime != ''">
+            AND t0.start_time &gt;= #{criteria.startTime}
+        </if>
+        <if test="(criteria.startTime != null and criteria.startTime != '') and (criteria.endTime != null and criteria.endTime != '')">
+            AND t0.start_time &lt;= #{criteria.endTime}
+        </if>
+        <if test="criteria.baseNestId != null and criteria.baseNestId != ''">
+            AND t.base_nest_id = #{criteria.baseNestId}
+        </if>
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t.org_code LIKE #{orgCodeLike}
+        </if>
+    </sql>
+
+    <select id="countRecordsByCondition" resultType="long">
+        SELECT
+        count(1)
+        FROM
+        task t
+        LEFT JOIN
+        mission m ON t.id = m.task_id
+        LEFT JOIN
+        <include refid="tableName"/>
+        AS t0
+        ON m.id = t0.mission_id
+        WHERE
+        t.deleted = 0
+        and m.deleted = 0
+        and t0.deleted = 0
+        and t.type =1
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectRecordsByCondition" resultType="com.imapcloud.nest.v2.dao.po.out.MissionRecordsOutPO">
+        SELECT
+        t.tag_id tagId
+        ,t.org_code orgCode
+        ,m.name missionName
+        ,t0.id missionRecordsId
+        ,t0.fly_index flyIndex
+        ,t0.start_time startTime
+        ,t.base_nest_id baseNestId
+        FROM
+        task t
+        LEFT JOIN mission m ON t.id = m.task_id
+        LEFT JOIN
+        <include refid="tableName"/>
+        AS t0
+        ON m.id = t0.mission_id
+        WHERE
+        t.deleted = 0
+        and m.deleted = 0
+        and t0.deleted = 0
+        and t.type =1
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+    <select id="getAirLineId" resultType="java.lang.String">
+        SELECT
+        m.air_line_id
+        FROM
+        task t
+        left join
+        mission m
+        on t.id = m.task_id
+        LEFT JOIN
+        <include refid="tableName"/>
+        AS t0
+        ON m.id = t0.mission_id
+        WHERE
+        m.deleted = 0
+        <if test="missionRecordsId != null and missionRecordsId != ''">
+            and t0.deleted = 0
+            AND t0.id = #{missionRecordsId}
+        </if>
+        <if test="taskId != null and taskId != ''">
+            AND t.id = #{taskId}
+        </if>
+        limit 1
+    </select>
+
+    <select id="getMissionRecordByIds" resultType="com.imapcloud.nest.model.MissionRecordsEntity">
+        SELECT *
+        FROM mission_records
+        WHERE deleted = 0 AND
+        id IN
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getMissionSeqById" resultType="Integer">
+        SELECT seq_id
+        FROM mission
+        WHERE id = #{missionId}
+    </select>
+
+</mapper>

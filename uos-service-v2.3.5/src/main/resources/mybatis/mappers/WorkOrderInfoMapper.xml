@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.WorkOrderInfoMapper">
+
+    <update id="editOrder" parameterType="com.imapcloud.nest.v2.dao.entity.WorkOrderInfoEntity">
+
+        UPDATE
+        work_order_info
+        SET
+        version_id =version_id+1,
+        <if test="bean.title !=null and bean.title !=''">
+            `title` = #{bean.title},
+        </if>
+        <if test="bean.orgCode !=null and bean.orgCode !=''">
+            `org_code` = #{bean.orgCode},
+        </if>
+        <if test="bean.type !=null and bean.type !=''">
+            `type` = #{bean.type},
+        </if>
+        <if test="bean.priorityDegree !=null and bean.priorityDegree !=''">
+            `priority_degree` = #{bean.priorityDegree},
+        </if>
+        <if test="bean.insepectionStartTime !=null and bean.insepectionStartTime !=''">
+            `insepection_start_time` = #{bean.insepectionStartTime},
+        </if>
+        <if test="bean.insepectionEndTime !=null and bean.insepectionEndTime !=''">
+            `insepection_end_time` = #{bean.insepectionEndTime},
+        </if>
+        <if test="bean.verificationMethod !=null and bean.verificationMethod !=''">
+            `verification_method` = #{bean.verificationMethod},
+        </if>
+         `inspection_frequency` = #{bean.inspectionFrequency},
+        <if test="bean.description !=null and bean.description !=''">
+            `description` = #{bean.description},
+        </if>
+        <if test="bean.orderStatus !=null and bean.orderStatus !=''">
+            `order_status` = #{bean.orderStatus},
+        </if>
+        <if test="bean.modifiedTime !=null">
+            `modified_time` = #{bean.modifiedTime},
+        </if>
+        <if test="bean.modifierId !=null and bean.modifierId !=''">
+            `modifier_id` = #{bean.modifierId}
+        </if>
+        WHERE
+        order_id=#{bean.orderId}
+        and
+        version_id=#{bean.versionId}
+    </update>
+</mapper>

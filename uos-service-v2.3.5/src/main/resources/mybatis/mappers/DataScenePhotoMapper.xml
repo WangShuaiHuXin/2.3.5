@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataScenePhotoMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataScenePhotoEntity" >
+        <result column="id" property="id" />
+        <result column="scene_photo_id" property="scenePhotoId" />
+        <result column="src_image_path" property="srcImagePath" />
+        <result column="thumbnail_image_path" property="thumbnailImagePath" />
+        <result column="scene_photo_name" property="scenePhotoName" />
+        <result column="addr" property="addr" />
+        <result column="task_id" property="taskId" />
+        <result column="mission_id" property="missionId" />
+        <result column="mission_records_id" property="missionRecordsId" />
+        <result column="longitude" property="longitude" />
+        <result column="latitude" property="latitude" />
+        <result column="topic_level_id" property="topicLevelId" />
+        <result column="topic_problem_id" property="topicProblemId" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        scene_photo_id,
+        src_image_path,
+        thumbnail_image_path,
+        scene_photo_name,
+        addr,
+        task_id,
+        mission_id,
+        mission_records_id,
+        longitude,
+        latitude,
+        topic_level_id,
+        topic_industry_id,
+        topic_problem_id,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+    <insert id="insertEntity" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.imapcloud.nest.v2.dao.entity.DataScenePhotoEntity">
+        INSERT INTO data_scene_photo
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                scene_photo_id, src_image_path, thumbnail_image_path, scene_photo_name, creator_id, modifier_id,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                #{scenePhotoId}, #{srcImagePath}, #{thumbnailImagePath}, #{scenePhotoName}, #{creatorId}, #{modifierId},
+        </trim>
+    </insert>
+
+    <delete id="delete" >
+        DELETE FROM data_scene_photo
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

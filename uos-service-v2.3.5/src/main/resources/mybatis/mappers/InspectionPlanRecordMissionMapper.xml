@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.InspectionPlanRecordMissionMapper">
+    <select id="listAllIprMissionsIgnoreDeleted" resultType="com.imapcloud.nest.model.InspectionPlanRecordMissionEntity">
+        SELECT *
+            FROM inspection_plan_record_mission
+        WHERE
+            plan_record_id IN
+        <if test="planRecordIds != null and planRecordIds.size() > 0">
+            <foreach collection="planRecordIds" open="(" item="planRecordId" separator="," close=")">
+                #{planRecordId}
+            </foreach>
+        </if>
+    </select>
+</mapper>

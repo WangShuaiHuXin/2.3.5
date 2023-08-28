@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.DataCenterMapper">
+    <select id="getOrthoInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+    FROM
+        data_ortho
+    WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getMultispectralInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+        FROM
+        data_multispectral
+        WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getPointCloudInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+        FROM
+        data_point_cloud
+        WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getTiltInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+        FROM
+        data_tilt
+        WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getVectorInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+        FROM
+        data_vector
+        WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getPanoramaInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+        FROM
+        data_panorama
+        WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getTaskMissions" resultType="com.imapcloud.nest.pojo.dto.MissionRecordsDto">
+        SELECT
+        m.id AS mission_id,
+        mr.id AS mission_records_id,
+        mr.create_time,
+        m.`name`
+        FROM
+        mission m,
+        mission_records mr
+        WHERE
+        m.id = mr.mission_id
+        AND m.task_id IN (
+        SELECT
+        t.id
+        FROM
+        task t,
+        sys_task_tag stt,
+        sys_tag st
+        WHERE
+        t.id = stt.task_id
+        and t.deleted = 0
+        and stt.tag_id = st.id
+        AND stt.deleted = 0
+        AND st.id = #{tagId}
+        AND t.data_type = #{dataType}
+        <if test="name != null and name !=''">
+            and t.name like CONCAT('%',#{name},'%')
+        </if>
+        )
+        AND m.deleted = 0
+        AND mr.deleted = 0
+        <if test = "orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND m.org_code LIKE #{orgCodeLike}
+        </if>
+        ORDER BY
+        create_time DESC
+    </select>
+
+    <select id="getTaskInfoByMissionRecordId" resultType="com.imapcloud.nest.pojo.dto.MissionRecordTaskInfoDTO">
+        SELECT mr.id AS missionRecordId, mr.create_time AS missionRecordTime, t.id AS taskId, t.`name` AS taskName
+            ,mr.fly_index flyIndex, m.name missionName
+        FROM mission_records mr
+        LEFT JOIN mission m ON m.id = mr.mission_id
+        LEFT JOIN task t ON t.id = m.task_id
+        WHERE mr.id IN
+        <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+            #{missionRecordsId}
+        </foreach>
+    </select>
+    <select id="getPanoramaNoRePeatUrl" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data_panorama
+        WHERE
+        file_info_id NOT IN ( SELECT file_info_id FROM data_panorama WHERE deleted = 0 GROUP BY file_info_id HAVING count( file_info_id ) > 1 )
+        AND id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getVectorNoRePeatUrl" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data_vector
+        WHERE
+        file_info_id NOT IN ( SELECT file_info_id FROM data_vector WHERE deleted = 0 GROUP BY file_info_id HAVING count( file_info_id ) > 1 )
+        AND id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getOrthoNoRePeatUrl" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data_ortho
+        WHERE
+        file_info_id NOT IN ( SELECT file_info_id FROM data_ortho WHERE deleted = 0 GROUP BY file_info_id HAVING count( file_info_id ) > 1 )
+        AND id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getTiltNoRePeatUrl" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data_tilt
+        WHERE
+        file_info_id NOT IN ( SELECT file_info_id FROM data_tilt WHERE deleted = 0 GROUP BY file_info_id HAVING count( file_info_id ) > 1 )
+        AND id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getPointCloudNoRePeatUrl" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data_point_cloud
+        WHERE
+        file_info_id NOT IN ( SELECT file_info_id FROM data_point_cloud WHERE deleted = 0 GROUP BY file_info_id HAVING count( file_info_id ) > 1 )
+        AND id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getPollutionGridNoRePeatUrl" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data__pollution_grid
+        WHERE
+        file_info_id NOT IN ( SELECT file_info_id FROM data__pollution_grid WHERE deleted = 0 GROUP BY file_info_id HAVING count( file_info_id ) > 1 )
+        AND id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getMultispectralNoRePeatUrl" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data_multispectral
+        WHERE
+        file_info_id NOT IN ( SELECT file_info_id FROM data_ortho WHERE deleted = 0 GROUP BY file_info_id HAVING count( file_info_id ) > 1 )
+        AND id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getRecords" resultType="java.lang.Integer">
+        select id from mission_records where Date(create_time) between #{startTime} and #{endTime}
+    </select>
+    <select id="getMissionPhotos" resultType="java.lang.String">
+        select photo_url from mission_photo
+        where deleted = 1
+        AND mission_records_id in
+        <foreach collection="recordsIds" item="recordsId" open="(" close=")" separator=",">
+            #{recordsId}
+        </foreach>
+    </select>
+    <select id="getMissionVideos" resultType="java.lang.String">
+        select video_url from mission_video
+        where deleted = 1
+        AND mission_records_id in
+        <foreach collection="recordsIds" item="recordsId" open="(" close=")" separator=",">
+            #{recordsId}
+        </foreach>
+    </select>
+    <select id="getOrthoFileInfoIds" resultType="java.lang.Integer">
+        SELECT
+            file_info_id
+        FROM
+            data_ortho
+        WHERE
+            deleted = 1
+            AND file_info_id NOT IN ( SELECT file_info_id FROM data_ortho WHERE deleted = 0 )
+            AND mission_records_id in
+            <foreach collection="recordsIds" item="recordsId" open="(" close=")" separator=",">
+                #{recordsId}
+            </foreach>
+    </select>
+    <select id="getVectorFileInfoIds" resultType="java.lang.Integer">
+        SELECT
+            file_info_id
+        FROM
+            data_vector
+        WHERE
+            deleted = 1
+            AND file_info_id NOT IN ( SELECT file_info_id FROM data_vector WHERE deleted = 0 )
+            AND mission_records_id in
+            <foreach collection="recordsIds" item="recordsId" open="(" close=")" separator=",">
+                #{recordsId}
+            </foreach>
+    </select>
+    <select id="getTiltFileInfoIds" resultType="java.lang.Integer">
+        SELECT
+            file_info_id
+        FROM
+            data_tilt
+        WHERE
+            deleted = 1
+            AND file_info_id NOT IN ( SELECT file_info_id FROM data_tilt WHERE deleted = 0 )
+            AND mission_records_id in
+            <foreach collection="recordsIds" item="recordsId" open="(" close=")" separator=",">
+                #{recordsId}
+            </foreach>
+    </select>
+    <select id="getPointCloudFileInfoIds" resultType="java.lang.Integer">
+        SELECT
+            file_info_id
+        FROM
+            data_point_cloud
+        WHERE
+            deleted = 1
+            AND file_info_id NOT IN ( SELECT file_info_id FROM data_point_cloud WHERE deleted = 0 )
+            AND mission_records_id in
+            <foreach collection="recordsIds" item="recordsId" open="(" close=")" separator=",">
+                #{recordsId}
+            </foreach>
+    </select>
+    <select id="getPanoramaFileInfoIds" resultType="java.lang.Integer">
+        SELECT
+        file_info_id
+        FROM
+        data_panorama
+        WHERE
+        deleted = 1
+        AND file_info_id NOT IN ( SELECT file_info_id FROM data_panorama WHERE deleted = 0 )
+        AND mission_records_id in
+        <foreach collection="recordsIds" item="recordsId" open="(" close=")" separator=",">
+            #{recordsId}
+        </foreach>
+    </select>
+
+</mapper>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.EarlyWarningMapper">
+
+    <resultMap type="com.imapcloud.nest.pojo.vo.EarlyWarningVO" id="EarlyWarningVO">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="state" column="state"/>
+        <result property="earlyWarningDate" column="earlyWarningDate"/>
+        <result property="earlyWarningDateEnd" column="earlyWarningDateEnd"/>
+        <result property="warningText" column="warningText"/>
+        <result property="waringType" column="waringType"/>
+        <result property="waringRight" column="waringRight"/>
+        <result property="waringLeft" column="waringLeft"/>
+        <result property="isEveryYear" column="isEveryYear"/>
+    </resultMap>
+
+    <resultMap type="com.imapcloud.nest.pojo.DO.EarlyWarningDo" id="EarlyWarningDo">
+        <result property="id" column="id"/>
+        <result property="earlyWarningDate" column="earlyWarningDate"/>
+        <result property="earlyWarningDateEnd" column="earlyWarningDateEnd"/>
+        <result property="warningText" column="warningText"/>
+        <result property="waringType" column="waringType"/>
+        <result property="waringRight" column="waringRight"/>
+        <result property="waringLeft" column="waringLeft"/>
+        <result property="isEveryYear" column="isEveryYear"/>
+        <result property="orgCode" column="orgCode"/>
+        <result property="nestId" column="nestId"/>
+    </resultMap>
+
+    <select id="byId" resultMap="EarlyWarningVO">
+        select ew.id as `id`,
+               ew.name as name,
+               ew.state as `state`,
+               ew.early_warning_date as `earlyWarningDate`,
+               ew.early_warning_date_end as `earlyWarningDateEnd`,
+               ew.`warning_text` as `warningText`,
+               ew.waring_type as `waringType`,
+               ew.waring_right as `waringRight`,
+               ew.waring_left as `waringLeft`,
+               ew.is_every_year as `isEveryYear`
+        from early_warning ew
+        where ew.id = #{id}
+    </select>
+
+    <select id="queryPage" resultMap="EarlyWarningVO">
+        select ew.id as `id`,
+               ew.name as name,
+               ew.state as `state`,
+               ew.early_warning_date as `earlyWarningDate`,
+               ew.early_warning_date_end as `earlyWarningDateEnd`,
+               ew.`warning_text` as `warningText`,
+               ew.waring_type as `waringType`,
+               ew.waring_right as `waringRight`,
+               ew.waring_left as `waringLeft`,
+               ew.is_every_year as `isEveryYear`
+        from early_warning ew
+        <where>
+            <if test="params.earlyWarningUnitIds != null and params.earlyWarningUnitIds != ''">
+                and ew.id
+                in
+                <foreach collection="params.earlyWarningUnitIds" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="params.name != null and params.name != ''">
+                and ew.name like concat('%', #{params.name}, '%')
+            </if>
+            <if test="params.inspectType != null and params.inspectType != ''">
+                and ew.inspect_type like concat('%', #{params.inspectType}, '%')
+            </if>
+            <if test="params.earlyWarningDateStart != null and params.earlyWarningDateEnd != null">
+                and ((#{params.earlyWarningDateStart} between ew.early_warning_date and ew.early_warning_date_end)
+                or (#{params.earlyWarningDateEnd} between ew.early_warning_date and ew.early_warning_date_end)
+                or (ew.early_warning_date_end &lt;= #{params.earlyWarningDateEnd}
+                and ew.early_warning_date &gt;= #{params.earlyWarningDateStart}))
+            </if>
+            <if test="params.earlyWarningDateStart != null and params.earlyWarningDateEnd == null">
+                and (#{params.earlyWarningDateStart} between ew.early_warning_date and ew.early_warning_date_end
+                or ew.early_warning_date &gt;= #{params.earlyWarningDateStart})
+            </if>
+            <if test="params.earlyWarningDateStart == null and params.earlyWarningDateEnd != null">
+                and (#{params.earlyWarningDateEnd} between ew.early_warning_date and ew.early_warning_date_end
+                or ew.early_warning_date_end &lt;= #{params.earlyWarningDateEnd})
+            </if>
+        </where>
+    </select>
+
+    <select id="getEarlyWarningByUnitId" resultMap="EarlyWarningDo">
+        select ew.id as `id`,
+               ew.name as name,
+               ew.state as `state`,
+               ew.early_warning_date as `earlyWarningDate`,
+               ew.early_warning_date_end as `earlyWarningDateEnd`,
+               ew.`warning_text` as `warningText`,
+               ew.waring_type as `waringType`,
+               ew.waring_right as `waringRight`,
+               ew.waring_left as `waringLeft`,
+               ew.is_every_year as `isEveryYear`,
+               bn.nest_id as `nestId`
+        from early_warning ew
+        left join early_warning_unit ewu on ew.id = ewu.early_warning_id
+        <if test="nestId != null and nestId != ''">
+            left join base_nest_org_ref bnor on bnor.org_code = ewu.org_code
+            left join base_nest bn on bn.nest_id = bnor.nest_id
+        </if>
+        where
+              bn.deleted = 0
+          and
+              bnor.deleted = 0
+          and
+              ew.state = 1
+        <if test="nestId != null and nestId != ''">
+            and bn.id = #{nestId}
+        </if>
+        <if test="orgCode != null and orgCode != ''">
+            and ewu.org_code = #{orgCode}
+        </if>
+    </select>
+
+</mapper>

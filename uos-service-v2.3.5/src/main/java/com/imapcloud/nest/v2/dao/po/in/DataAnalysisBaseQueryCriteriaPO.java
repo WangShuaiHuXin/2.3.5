@@ -1,0 +1,36 @@
+package com.imapcloud.nest.v2.dao.po.in;
+
+import com.geoai.common.mp.entity.QueryCriteriaDo;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
+
+/**
+ * @author zhongtb
+ * @version 1.0.0
+ * @ClassName DataAnalysisBaseQueryCriteriaPO.java
+ * @Description DataAnalysisBaseQueryCriteriaPO
+ * @createTime 2022年07月13日 15:04:00
+ */
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+public class DataAnalysisBaseQueryCriteriaPO extends QueryCriteriaDo<DataAnalysisBaseQueryCriteriaPO> {
+
+    private String startTime;
+
+    private String endTime;
+
+    private String taskName;
+
+    private String tagName;
+
+    private Long missionId;
+
+    private Long missionRecordId;
+
+    private Long nestId;
+
+    private String orgCode;
+
+    private String visibleOrgCode;
+
+}

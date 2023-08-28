@@ -1,0 +1,22 @@
+### 引导启动配置-菠萝环境（boluo） ###
+## spring cloud相关配置 ##
+spring:
+  cloud:
+    # 忽略多网卡获取IP问题
+    inetutils:
+      ignored-interfaces: [ 'VMware.*' ]
+    nacos:
+      # 注册中心
+      discovery:
+        server-addr: "139.9.219.45:8848"
+        namespace: "3d6583e7-9487-415d-9774-9dc733db038f"
+      # 配置中心
+      config:
+        group: ${spring.application.name}
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - data-id: geoai-common.yml
+            refresh: true

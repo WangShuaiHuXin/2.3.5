@@ -1,0 +1,781 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MissionPhotoMapper">
+    <resultMap id="missionPhotoEntity" type="com.imapcloud.nest.model.MissionPhotoEntity">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="photoUrl" column="photo_url"/>
+        <result property="photoSize" column="photo_size"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="thumbnailName" column="thumbnail_name"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="missionRecordsId" column="mission_records_id"/>
+
+        <result property="execId" column="exec_id"/>
+        <result property="fileId" column="file_id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="mediaType" column="media_type"/>
+        <result property="timeCreated" column="time_created"/>
+        <result property="downloaded" column="downloaded"/>
+
+        <result property="createUserId" column="create_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="getThumbnailPage" resultMap="missionPhotoEntity">
+        SELECT id, name, photo_url, thumbnail_name, thumbnail_url,
+        mission_records_id, file_id, file_name, media_type, time_created,
+        latitude, longitude, altitude,photo_type
+        FROM mission_photo
+        WHERE mission_records_id = #{missionRecordId} AND deleted = 0 AND source = 1
+        <if test = "orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND org_code LIKE #{orgCodeLike}
+        </if>
+    </select>
+
+    <select id="getMissionIdById" resultType="integer">
+        SELECT mission_id FROM mission_photo WHERE id = #{photoId}
+    </select>
+
+    <select id="getTaskIdByMissionId" resultType="integer">
+        SELECT task_id FROM mission WHERE id = (SELECT mission_id FROM mission_photo WHERE id = #{missionId})
+    </select>
+
+    <select id="getPhotoUrlByRecordId" resultType="string">
+        SELECT photo_url FROM mission_photo WHERE mission_records_id = #{recordId} AND deleted = 0
+    </select>
+
+    <select id="getPhotoUrlByIdList" resultType="string">
+        SELECT photo_url FROM mission_photo WHERE id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="deleteByRecordId" parameterType="java.util.List">
+        UPDATE mission_photo SET deleted = 1 WHERE mission_records_id IN
+        <foreach collection="recordIdList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getDeviceNameByTagId" resultType="string">
+        SELECT mp.`name`
+        FROM mission_photo mp
+        INNER JOIN mission_photo_tag_rel gr on mp.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on mp.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t1 ON t1.photo_id = mp.id AND t1.deleted != 1
+        LEFT JOIN station_infrared_record t2 ON t2.photo_id = mp.id AND t2.deleted != 1
+        WHERE mp.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+        AND gr.tag_id = #{tagId}
+        <if test="type != null">
+            AND pr.type = #{type}
+        </if>
+        <if test="defectStatus != null and defectStatus == 0">
+            AND (t1.status = #{defectStatus} or t1.status is null)
+        </if>
+        <if test="defectStatus != null and defectStatus != 0">
+            AND t1.status = #{defectStatus}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(mp.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mp.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+        order by mp.create_time desc
+    </select>
+
+    <select id="getPhotoInfoList" resultType="com.imapcloud.nest.pojo.dto.StationDevicePhotoDTO">
+        SELECT
+        t1.id AS photoId, t1.time_created AS photoModifyTime, t1.`name` AS photoName,t1.create_time,t1.modify_time,
+        CASE pr.`type` WHEN 2 THEN t3.flag ELSE t2.flag END flag,
+        t2.meter_num, t2.meter_status, t2.meter_photo,t2.status AS defectStatus,t3.max_temperature,t.`name` AS taskName,t.create_time AS taskCreateTime
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted != 1 AND t2.source = #{type}
+        LEFT JOIN station_infrared_record t3 ON t3.photo_id = t1.id AND t3.deleted != 1
+        LEFT JOIN mission m ON t1.mission_id = m.id
+        LEFT JOIN task t ON m.task_id = t.id
+        WHERE t1.deleted = 0
+        AND t1.mission_id is not null
+        AND gr.deleted = 0 AND pr.deleted = 0
+        AND gr.tag_id = #{tagId}
+        AND pr.type = #{type}
+        <if test="name !=null and name != ''">
+            AND t1.name =#{name}
+        </if>
+        <if test="defectStatus != null and defectStatus == 0">
+            AND (t2.status = #{defectStatus} or t2.status is null)
+        </if>
+        <if test="defectStatus != null and defectStatus != 0">
+            AND t2.status = #{defectStatus}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and t1.create_time between #{startTime} and #{endTime}
+        </if>
+        <if test="type == 0 || type == 1 || type == 3">
+            ORDER BY t1.modify_time DESC
+        </if>
+        <if test="type == 2">
+            ORDER BY t3.max_temperature,t1.modify_time DESC
+        </if>
+    </select>
+    
+    <select id="getPhotoInfoMissionRecordList" resultType="com.imapcloud.nest.pojo.dto.StationDevicePhotoDTO">
+        SELECT
+        t1.id AS photoId, t1.time_created AS photoModifyTime, t1.`name` AS photoName,t1.create_time,t1.modify_time,t1.mission_records_id,
+        CASE pr.`type` WHEN 2 THEN t3.flag ELSE t2.flag END flag,
+        t2.meter_num, t2.meter_status, t2.meter_photo,t2.status AS defectStatus,t3.max_temperature,t.`name` AS taskName,tr.start_time AS taskCreateTime
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted != 1 AND t2.source = #{type}
+        LEFT JOIN station_infrared_record t3 ON t3.photo_id = t1.id AND t3.deleted != 1
+        LEFT JOIN mission qr on t1.mission_id = qr.id
+        LEFT JOIN task t ON t.id = qr.task_id
+		LEFT JOIN mission_records tr on t1.mission_records_id = tr.id
+        WHERE t1.deleted = 0
+        AND t1.mission_id is not null
+        AND gr.deleted = 0 AND pr.deleted = 0
+        AND gr.tag_id = #{tagId}
+        AND pr.type = #{type}
+        <if test="name !=null and name != ''">
+            AND t1.name =#{name}
+        </if>
+        <if test="defectStatus != null and defectStatus == 0">
+            AND (t2.status = #{defectStatus} or t2.status is null)
+        </if>
+        <if test="defectStatus != null and defectStatus != 0">
+            AND t2.status = #{defectStatus}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and t1.create_time between #{startTime} and #{endTime}
+        </if>
+        <if test="type == 2">
+            <!--and (t1.photo_type = 1 or t1.photo_type = 3)-->
+            ORDER BY t3.max_temperature,t1.modify_time DESC
+        </if>
+        <if test="type == 0 || type == 1 || type == 3">
+            ORDER BY t1.modify_time DESC
+        </if>
+    </select>
+
+    <select id="getDefectMonthList" resultType="com.imapcloud.nest.pojo.dto.unifyAirLineDto.StationDefectPhotoDTO">
+        SELECT
+        t1.*,t2.status,t2.defect_content,t2.defect_photo_path,t2.defect_photo_thumb_path,t2.id as sid,DATE_FORMAT(t1.create_time,"%Y-%m") as
+        p_month,gr.tag_id
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted = 0 AND t2.source = #{type}
+        WHERE t1.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0 AND pr.type = #{type}
+        <if test="names != null and names.size() > 0">
+            and t1.name in
+            <foreach collection="names" item="name" index="index" open="(" close=")" separator=",">
+                #{name}
+            </foreach>
+        </if>
+         <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and t1.mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        <if test="tagIds != null and tagIds.size() > 0">
+            and gr.tag_id in
+            <foreach collection="tagIds" item="tagId" index="index" open="(" close=")" separator=",">
+                #{tagId}
+            </foreach>
+        </if>
+        <if test="defectStatus != null and defectStatus == 0">
+            AND (t2.status = #{defectStatus} or t2.status is null)
+        </if>
+        <if test="defectStatus != null and defectStatus != 0">
+            AND t2.status = #{defectStatus}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(t1.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(t1.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+        ORDER BY t1.time_created DESC
+    </select>
+
+    <select id="getPhotoIdUrlList" resultType="com.imapcloud.nest.pojo.dto.StationIdentifyPhotoDTO">
+        SELECT t1.id, t1.photo_url, t2.meter_num
+        FROM mission_photo t1
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id
+        LEFT JOIN mission t3 ON t3.id = t1.mission_id
+        LEFT JOIN sys_task_tag t4 ON t4.task_id = t3.task_id
+        WHERE t1.deleted = 0 AND t4.tag_id = #{tagId} AND t1.device_uuid IN
+        <foreach collection="uuidList" item="uuid" open="(" close=")" separator=",">
+            #{uuid}
+        </foreach>
+    </select>
+
+    <select id="getPhotoUrlList" resultType="com.imapcloud.nest.pojo.dto.StationIdentifyPhotoDTO">
+        SELECT id, photo_url, `name` AS picName FROM mission_photo WHERE id in
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getMeterPhotoNumList" resultType="double">
+        SELECT t1.meter_num
+        FROM station_identify_record t1
+        LEFT JOIN mission_photo t2 ON t2.id = t1.photo_id
+        WHERE t1.deleted = 0 AND t2.deleted = 0 AND t2.type = 1 AND t2.device_uuid = #{uuid} AND t2.tag_id = #{tagId}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and Date(t2.create_time) between #{startTime} and #{endTime}
+        </if>
+    </select>
+
+    <select id="getTotalPhotoAndVideo" resultType="map">
+        SELECT p.photoCount , v.videoCount
+        FROM(
+        select count(mp.id) AS photoCount
+        from mission_photo mp
+        where mp.deleted = 0 and mp.source = 1
+        <if test = "orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND mp.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mp.create_time) &gt;= #{startTime} and Date(mp.create_time) &lt;= #{endTime}
+        </if>
+        ) p,
+        (SELECT COUNT(mv.id) AS videoCount
+        FROM mission_video mv
+        WHERE mv.deleted = 0
+        <if test = "orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND mv.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mv.create_time) &gt;= #{startTime} and Date(mv.create_time) &lt;= #{endTime}
+        </if>
+        )v
+    </select>
+
+    <select id="getTotalPhotoByTag" resultType="com.imapcloud.nest.pojo.dto.MissionPhotoVideoTotalDTO$PhotoTagBean">
+        SELECT COUNT(mp.id) AS photoCount, bn.`name` AS tagName, bn.nest_id AS tagId
+        FROM mission_photo mp
+        INNER JOIN mission m ON m.id = mp.mission_id
+        INNER JOIN task t ON t.id = m.task_id
+        INNER JOIN base_nest bn ON bn.nest_id = t.base_nest_id AND t.base_nest_id != 0
+        <if test = "orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND mp.org_code LIKE #{orgCodeLike}
+        </if>
+        WHERE mp.deleted = 0 AND mp.source = 1
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mp.create_time) &gt;= #{startTime} and Date(mp.create_time) &lt;= #{endTime}
+        </if>
+        GROUP BY bn.id
+    </select>
+
+    <select id="getTotalVideoByTag" resultType="com.imapcloud.nest.pojo.dto.MissionPhotoVideoTotalDTO$VideoTagBean">
+        SELECT COUNT(mv.id) AS videoCount, bn.`name` AS tagName, bn.nest_id AS tagId
+        FROM mission_video mv
+        INNER JOIN mission m ON m.id = mv.mission_id
+        INNER JOIN task t ON t.id = m.task_id
+        INNER JOIN base_nest bn ON bn.nest_id = t.base_nest_id AND t.base_nest_id != 0
+        <if test = "orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND mv.org_code LIKE #{orgCodeLike}
+        </if>
+        WHERE mv.deleted = 0
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mv.create_time) &gt;= #{startTime} and Date(mv.create_time) &lt;= #{endTime}
+        </if>
+        GROUP BY bn.id
+    </select>
+
+
+    <select id="getTotalNestPhotoByTag" resultType="com.imapcloud.nest.pojo.dto.MissionRecordsTotalDTO">
+        SELECT n.nest_id AS nestId, n.`name` AS nestName, COUNT(mp.id) AS photoCount
+        FROM mission_photo mp
+        INNER JOIN mission m ON m.id = mp.mission_id
+        INNER JOIN task t ON t.id = m.task_id AND t.base_nest_id != 0
+        INNER JOIN base_nest n ON n.nest_id = t.base_nest_id
+        <if test="nestId != null and nestId !=''">
+            AND n.nest_id = #{nestId}
+        </if>
+        <if test="nestId == null || nestId ==''">
+            <if test="orgCode != null and orgCode !=''">
+                <if test="userId != null and userId !=''">
+                    AND t.base_nest_id IN (select sun.base_nest_id from base_nest_account sun where sun.creator_id = #{userId} and sun.deleted=0)
+                </if>
+                <if test="userId == null || userId ==''">
+                    AND t.base_nest_id IN (select nest_id from base_nest_org_ref n where  n.org_code = #{orgCode})
+                </if>
+            </if>
+        </if>
+        WHERE mp.deleted = 0 AND mp.source = 1
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mp.create_time) &gt;= #{startTime} and Date(mp.create_time) &lt;= #{endTime}
+        </if>
+        GROUP BY n.nest_id
+        ORDER BY photoCount DESC
+        LIMIT 5
+    </select>
+
+    <select id="getTotalNestVideoByTag" resultType="com.imapcloud.nest.pojo.dto.MissionRecordsTotalDTO">
+        SELECT n.nest_id AS nestId, n.`name` AS nestName, COUNT(mv.id) AS videoCount
+        FROM mission_video mv
+        INNER JOIN mission m ON m.id = mv.mission_id
+        INNER JOIN task t ON t.id = m.task_id AND t.base_nest_id != 0
+        INNER JOIN base_nest n ON n.nest_id = t.base_nest_id
+        <if test="nestId != null and nestId !=''">
+            AND n.nest_id = #{nestId}
+        </if>
+        <if test="nestId == null || nestId ==''">
+            <if test="orgCode != null and orgCode !=''">
+                <if test="userId != null and userId !=''">
+                    AND t.base_nest_id IN (select sun.base_nest_id from base_nest_account sun where sun.creator_id = #{userId} and sun.deleted=0)
+                </if>
+                <if test="userId == null || userId ==''">
+                    AND t.base_nest_id IN (select nest_id from base_nest_org_ref n where  n.org_code = #{orgCode})
+                </if>
+            </if>
+        </if>
+        WHERE mv.deleted = 0
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mv.create_time) &gt;= #{startTime} and Date(mv.create_time) &lt;= #{endTime}
+        </if>
+        GROUP BY n.nest_id
+        ORDER BY videoCount DESC
+        LIMIT 5
+    </select>
+
+    <select id="getPhotoByNestPageList"
+            resultType="com.imapcloud.nest.pojo.dto.MissionPhotoVideoTotalDTO$PhotoNestPageBean">
+        SELECT t1.id AS photoId, t1.thumbnail_url AS photoThumbnail, t1.photo_url AS photoUrl
+        FROM mission_photo t1
+        LEFT JOIN mission t2 ON t2.id = t1.mission_id
+        LEFT JOIN task t3 ON t3.id = t2.task_id
+        LEFT JOIN base_nest t4 ON t4.nest_id = t3.base_nest_id
+        WHERE t1.deleted = 0 AND t4.nest_id = #{nestId}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        ORDER BY t1.create_time DESC
+    </select>
+
+    <select id="getPhotoByAppPageList"
+            resultType="com.imapcloud.nest.pojo.dto.MissionPhotoVideoTotalDTO$PhotoNestPageBean">
+        SELECT t1.id AS photoId, t1.thumbnail_url AS photoThumbnail, t1.photo_url AS photoUrl
+        FROM mission_photo t1
+        LEFT JOIN mission_records t2 ON t2.id = t1.mission_records_id
+        LEFT JOIN base_app t3 ON t3.app_id = t2.base_app_id
+        WHERE t1.deleted = 0 AND t3.app_id = #{appId}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        ORDER BY t1.create_time DESC
+    </select>
+
+    <select id="getVideoByNestPageList"
+            resultType="com.imapcloud.nest.pojo.dto.MissionPhotoVideoTotalDTO$VideoNestPageBean">
+        SELECT t1.id AS videoId, t1.video_thumbnail AS videoThumbnail, t1.video_url AS videoUrl
+        FROM mission_video t1
+        LEFT JOIN mission t2 ON t2.id = t1.mission_id
+        LEFT JOIN task t3 ON t3.id = t2.task_id
+        LEFT JOIN base_nest t4 ON t4.nest_id = t3.base_nest_id
+        WHERE t1.deleted = 0 AND t4.nest_id = #{nestId}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        ORDER BY t1.create_time DESC
+    </select>
+
+    <select id="getVideoByAppPageList"
+            resultType="com.imapcloud.nest.pojo.dto.MissionPhotoVideoTotalDTO$VideoNestPageBean">
+        SELECT t1.id AS videoId, t1.video_thumbnail AS videoThumbnail, t1.video_url AS videoUrl
+        FROM mission_video t1
+        LEFT JOIN mission_records t2 ON t2.id = t1.mission_records_id
+        LEFT JOIN base_app t3 ON t3.app_id = t2.base_app_id
+        WHERE t1.deleted = 0 AND t3.app_id = #{appId}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(t1.create_time) &gt;= #{startTime} and Date(t1.create_time) &lt;= #{endTime}
+        </if>
+        ORDER BY t1.create_time DESC
+    </select>
+    <select id="selectAllDefectPhoto" resultType="java.lang.Integer">
+        SELECT mp.`id`
+        FROM mission_photo mp
+        LEFT JOIN `station_identify_record` sr ON mp.id = sr.photo_id AND sr.deleted = 0
+        LEFT JOIN mission t2 ON t2.id = mp.mission_id
+        LEFT JOIN task t3 ON t3.id = t2.task_id
+        LEFT JOIN sys_task_tag t5 ON t5.task_id = t3.id
+        WHERE mp.deleted = 0 AND mp.`name` = #{photoDeviceName} AND sr.id is null AND (mp.tag_id = #{tagId} || t5.tag_id = #{tagId})
+    </select>
+
+    <select id="getPhotoByMissionIds" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT * FROM mission_photo WHERE deleted = 0
+        <if test="missionIdList != null and missionIdList.size() > 0">
+            AND mission_id IN
+            <foreach collection="missionIdList" item="missionId" open="(" close=")" separator=",">
+                #{missionId}
+            </foreach>
+        </if>
+        <if test="(startTimeStr != null and startTimeStr != '' )and (endTimeStr != null and endTimeStr != '')">
+            and create_time between #{startTimeStr} and #{endTimeStr}
+        </if>
+    </select>
+
+    <select id="getPhotoByTagIds" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT * FROM mission_photo WHERE deleted = 0
+        <if test="tagIdList != null and tagIdList.size() > 0">
+            tag_id IN
+            <foreach collection="tagIdList" item="tagId" open="(" close=")" separator=",">
+                #{tagId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getPhotoByType" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT * FROM mission_photo
+        WHERE deleted = 0
+        and type = #{type}
+        <if test="(startTimeStr != null and startTimeStr != '' )and (endTimeStr != null and endTimeStr != '')">
+            and create_time between #{startTimeStr} and #{endTimeStr}
+        </if>
+    </select>
+
+    <select id="getTaskWithMissionPhotoByTaskIds" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT DISTINCT m.task_id as taskId, m.id as missionId
+        from mission_photo mp
+        join mission m on mp.mission_id = m.id
+        where mission_id in (SELECT id from mission m where m.task_id in
+        <foreach collection="taskIds" item="taskIds" open="(" close=")" separator=",">
+            #{taskIds}
+        </foreach>
+        )
+        and mp.deleted = 0
+        <if test="(startTimeStr != null and startTimeStr != '' )and (endTimeStr != null and endTimeStr != '')">
+            and mp.create_time between #{startTimeStr} and #{endTimeStr}
+        </if>
+    </select>
+
+    <select id="getUnDetectTaskWithMissionPhotoByTaskIds" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT DISTINCT m.id as missionId
+        from mission_photo mp
+        join mission m on mp.mission_id = m.id
+        LEFT JOIN station_identify_record sir on sir.photo_id = mp.id
+        where mission_id in (SELECT id from mission m where m.task_id in
+        <foreach collection="taskIds" item="taskIds" open="(" close=")" separator=",">
+            #{taskIds}
+        </foreach>
+        )
+        and mp.deleted = 0
+        and sir.id is not null
+        <if test="(startTimeStr != null and startTimeStr != '' )and (endTimeStr != null and endTimeStr != '')">
+            and mp.create_time between #{startTimeStr} and #{endTimeStr}
+        </if>
+    </select>
+    <select id="getDefectStatistics" resultType="java.util.Map">
+        SELECT
+        sum(IF(t2.`status`=2,1,0)) as deviceInDefectNum,
+        sum(IF(t2.`status`=3,1,0)) as totalDefectRemovedNum,
+        sum(IF(t2.`status`=2,1,0)) + sum(IF(t2.`status`=3,1,0)) as totalDefectNum
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted = 0  AND t2.source = 0
+        WHERE t1.deleted = 0 AND (t1.task_id is not null or t1.mission_id is not null) AND gr.deleted = 0 AND pr.deleted = 0
+        AND pr.type = 0
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and t1.create_time between #{startTime} and #{endTime}
+        </if>
+        <if test="tagList != null and tagList.size() > 0">
+            and gr.tag_id in
+            <foreach collection="tagList" item="tagId" open="(" close=")" separator=",">
+                #{tagId}
+            </foreach>
+        </if>
+    </select>
+    <select id="getMissionPhotoByIds" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT
+        t1.*, gr.tag_id AS tagId
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        WHERE t1.deleted = 0 AND t1.mission_id is not null AND gr.deleted = 0 AND pr.deleted = 0
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and date_format(t1.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(t1.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+        <if test="tagId != null">
+            and gr.tag_id = #{tagId}
+        </if>
+        <if test="type != null">
+            and pr.type = #{type}
+        </if>
+        <!--<if test="type == 2">
+            and (t1.photo_type = 1 or t1.photo_type = 3)
+        </if>-->
+    </select>
+
+    <select id="getRecordMap" resultType="java.util.Map">
+        SELECT
+        m.id,
+        m.`name`,
+        s.defect_content,
+        s.meter_num,
+        s.meter_num1,
+        s.meter_type,
+        gr.tag_id,
+        pr.type
+    FROM
+        mission_photo m
+        INNER JOIN mission_photo_tag_rel gr on m.id = gr.mission_photo_id
+      INNER JOIN mission_photo_type_rel pr on m.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record s ON m.id = s.photo_id
+    WHERE
+	m.mission_id = #{missionId} and m.mission_records_id = #{recordId} and m.deleted = 0 and s.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+    </select>
+    <select id="getMissionPhotos" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT
+        m.*
+    FROM
+        mission_photo m
+        INNER JOIN mission_photo_tag_rel gr on m.id = gr.mission_photo_id
+      INNER JOIN mission_photo_type_rel pr on m.id = pr.mission_photo_id
+      where m.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+    </select>
+    <select id="getDeviceNameByTagIdAndTask" resultType="com.imapcloud.nest.pojo.dto.TaskAndMissionRecordsDto">
+        SELECT t.*,m.name as mission_name,m.id as mission_id,mr.end_time as mission_end_time,mr.id as fly_index,mr.id as mission_records_id
+        FROM mission_photo mp
+        INNER JOIN mission_photo_tag_rel gr on mp.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on mp.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t1 ON t1.photo_id = mp.id AND t1.deleted != 1
+        LEFT JOIN station_infrared_record t2 ON t2.photo_id = mp.id AND t2.deleted != 1
+        LEFT JOIN mission m ON mp.mission_id = m.id
+        LEFT JOIN task t ON m.task_id = t.id
+        LEFT JOIN mission_records mr ON mp.mission_records_id = mr.id
+        WHERE mp.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0 AND m.deleted = 0 AND t.deleted = 0
+        AND gr.tag_id = #{tagId} AND pr.type = #{type}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' ) and type != 0 and type != 1 and type != 2">
+            and date_format(mr.end_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mr.end_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+        order by mr.end_time desc
+    </select>
+    <select id="getDefectByTaskId" resultType="com.imapcloud.nest.pojo.dto.unifyAirLineDto.StationDefectPhotoDTO">
+        SELECT
+        t1.*,t2.status,t2.defect_content,t2.defect_photo_path, t2.id as sid,DATE_FORMAT(t1.create_time,"%Y-%m") as
+        p_month,gr.tag_id
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted = 0 AND t2.source = #{type}
+        LEFT JOIN mission m ON t1.mission_id = m.id
+        LEFT JOIN task t ON m.task_id = t.id
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index">
+                <if test="taskIds != null and taskIds.size() > 0 and missionRecordsId != -1">
+                    and t.id in
+                    <foreach collection="taskIds" item="taskId" index="index" open="(" close=")" separator=",">
+                        #{taskId}
+                    </foreach>
+                </if>
+            </foreach>
+
+        </if>
+        WHERE t1.deleted = 0  AND gr.deleted = 0 AND pr.deleted = 0
+        AND pr.type = #{type} AND (t2.id is null or t2.source = #{type})
+
+
+
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index">
+                <if test="taskIds != null and taskIds.size() > 0 and missionRecordsId == -1">
+                    AND t1.task_id  IN
+                    <foreach collection="taskIds" item="taskId" index="index" open="(" close=")" separator=",">
+                        #{taskId}
+                    </foreach>
+                </if>
+            </foreach>
+        </if>
+
+
+        <if test="type == 3">
+            and t1.photo_type = 1 or t1.photo_type = 3
+        </if>
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index">
+                <if test="taskIds != null and taskIds.size() > 0 and missionRecordsId != -1">
+                    AND m.deleted = 0 AND t.deleted = 0
+                    and t1.mission_records_id in
+                    <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                        #{missionRecordsId}
+                    </foreach>
+                    and gr.tag_id in
+                    <foreach collection="tagIds" item="tagId" index="index" open="(" close=")" separator=",">
+                        #{tagId}
+                    </foreach>
+                </if>
+            </foreach>
+        </if>
+
+<!--        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">-->
+<!--            and gr.tag_id in-->
+<!--            <foreach collection="tagIds" item="tagId" index="index" open="(" close=")" separator=",">-->
+<!--                #{tagId}-->
+<!--            </foreach>-->
+<!--        </if>-->
+    </select>
+    <select id="getRiverByTaskId" resultType="com.imapcloud.nest.pojo.dto.StationDevicePhotoDTO">
+        SELECT
+        t1.id AS photoId, t1.time_created AS photoModifyTime, t1.`name` AS photoName,t1.create_time,t1.modify_time,
+        t2.meter_num, t2.meter_status, t2.meter_photo,t2.status AS defectStatus,t.`name` AS taskName,t.create_time AS taskCreateTime
+        FROM mission_photo t1
+        INNER JOIN mission_photo_tag_rel gr on t1.id = gr.mission_photo_id
+        INNER JOIN mission_photo_type_rel pr on t1.id = pr.mission_photo_id
+        LEFT JOIN station_identify_record t2 ON t2.photo_id = t1.id AND t2.deleted = 0
+        LEFT JOIN mission m ON t1.mission_id = m.id
+        LEFT JOIN task t ON m.task_id = t.id
+        <if test="missionRecordsId != null">
+            and t.id = #{taskId}
+        </if>
+        WHERE t1.deleted = 0  AND gr.deleted = 0 AND pr.deleted = 0 AND m.deleted = 0 AND t.deleted = 0
+        AND pr.type = #{type}
+        <if test="missionRecordsId != null">
+            and t1.mission_records_id = #{missionRecordsId}
+        </if>
+        <if test="missionRecordsId != null">
+            and gr.tag_id = #{tagId}
+        </if>
+        ORDER BY DATE_FORMAT(t1.create_time,"%Y-%m") ASC
+    </select>
+    <select id="getInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+        FROM
+        mission_photo
+        WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")" separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getMissionRecords" resultType="com.imapcloud.nest.model.MissionRecordsEntity">
+        SELECT
+        distinct mr.*,t.`name` as task_name,t.id as task_id
+        FROM
+        mission_records mr
+        INNER JOIN mission_photo mp ON mr.id = mp.mission_records_id
+        INNER JOIN mission m on mr.mission_id = m.id
+        INNER JOIN task t on m.task_id = t.id
+        WHERE
+        mr.deleted = 0
+        AND mp.deleted = 0
+        AND m.deleted = 0
+        AND t.deleted = 0
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and Date(mr.create_time) between #{startTime} and #{endTime}
+        </if>
+        order by mr.create_time desc
+    </select>
+
+    <select id="getPhotoIdAndDefectTypeId" resultType="java.util.Map">
+        SELECT mp.id AS photoId, fi.type_id AS typeId
+        FROM mission_photo mp
+        LEFT JOIN defect_info fi ON fi.photo_id = mp.id
+        WHERE fi.deleted = 0 AND mp.id in
+        <foreach collection="photoIds" item="photoId" index="index" open="(" close=")" separator=",">
+            #{photoId}
+        </foreach>
+    </select>
+    
+    <select id="getPhotoTagSourceList" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.PhotoTagSourceDTO">
+        SELECT
+        gr.tag_id AS tagId, pr.type AS problemSource,
+        mp.id AS photoId, mp.task_id AS taskId, mp.`name` AS photoName
+        FROM mission_photo mp
+        LEFT JOIN mission_photo_tag_rel gr ON gr.mission_photo_id = mp.id
+        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id
+        WHERE mp.deleted = 0 AND gr.deleted = 0 AND pr.deleted = 0
+        AND gr.tag_id = #{tagId} AND pr.type IN
+        <foreach collection="problemSourceList" item="problemSource" index="index" open="(" close=")" separator=",">
+            #{problemSource}
+        </foreach>
+        <if test="problemStatus != null">
+            AND dp.problem_status = #{problemStatus}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND date_format(mp.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mp.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+    <select id="getAllStationDefectPhotoDTO1" resultType="com.imapcloud.nest.pojo.dto.unifyAirLineDto.StationDefectPhotoDTO">
+        SELECT mp.*,t1.status,t1.flag,t2.flag as flag_infrared
+        FROM mission_photo mp
+        LEFT JOIN station_identify_record t1 ON t1.photo_id = mp.id AND t1.deleted != 1 and t1.source = #{type}
+        LEFT JOIN station_infrared_record t2 ON t2.photo_id = mp.id AND t2.deleted != 1
+        where mp.deleted = 0
+              AND mp.id IN (SELECT mission_photo_id FROM mission_photo_tag_rel WHERE tag_id = #{tagId} AND deleted = 0)
+              AND mp.id IN (SELECT mission_photo_id FROM mission_photo_type_rel WHERE type = #{type} AND deleted = 0)
+        <!--<if test="type == 2">
+            AND (mp.photo_type = 1 or mp.photo_type = 3)
+        </if>-->
+        <if test="defectStatus != null and defectStatus == 0">
+            AND (t1.status = #{defectStatus} or t1.status is null)
+        </if>
+        <if test="defectStatus != null and defectStatus != 0">
+            AND t1.status = #{defectStatus}
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            <!--and date_format(mp.modify_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mp.modify_time, '%Y-%m-%d') &lt;= #{endTime}-->
+            and date_format(mp.create_time, '%Y-%m-%d') &gt;= #{startTime} and date_format(mp.create_time, '%Y-%m-%d') &lt;= #{endTime}
+        </if>
+    </select>
+
+    <select id="queryListByTagVersion" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        select *
+        from mission_photo
+        where deleted = 0 and tag_version != -10000 and tag_version!=#{tagVersion}
+        order by id desc
+        limit 500;
+    </select>
+
+    <select id="queryDeleteList" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        select *
+        from mission_photo
+        where deleted = 1 and physics_delete = 0 and time_created <![CDATA[ >= ]]> '2021-01-01 00:00:00'
+        order by id desc
+        limit 100;
+    </select>
+
+    <update id="updatePhysicsDelete">
+        update mission_photo set physics_delete = 1
+        where deleted = 1 and id in
+        <foreach collection="idList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="queryPhotoNum" resultType="java.util.Map">
+        select mission_records_id missionRecordsId, count(1) num
+        from mission_photo
+        where deleted = 0 and mission_records_id in
+            <foreach collection="missionRecordIdList" open="(" item="item" separator="," close=")">
+                #{item}
+            </foreach>
+        group by mission_records_id
+    </select>
+
+    <select id="queryPhotos" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        select id, altitude, len_type
+        from mission_photo
+        where  id in
+        <foreach collection="photoIds" open="(" item="item" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>

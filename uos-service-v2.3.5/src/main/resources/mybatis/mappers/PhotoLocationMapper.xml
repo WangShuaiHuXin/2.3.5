@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.PhotoLocationMapper">
+
+    <select id="getPhotoLocationList" resultType="com.imapcloud.nest.model.PhotoLocationEntity">
+        SELECT pl.*, mp.id AS photoId, mp.`name` AS photoName, mp.photo_url AS photoUrl, mp.thumbnail_url AS thumbnailUrl,mp.clear_id,d.problem_url
+        FROM mission_photo mp
+        LEFT JOIN photo_location pl ON pl.photo_id = mp.id AND pl.deleted = 0
+        left join data_problem d on mp.id = d.data_id and d.deleted = 0 and d.data_source != 8 and d.data_source != 17
+        WHERE mp.id IN
+        <foreach collection="photoIdList" open="(" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+
+    </select>
+    <select id="getMission" resultType="com.imapcloud.nest.model.MissionRecordsEntity">
+        SELECT
+        mr.*,t.`name` as task_name
+        FROM
+        task t
+        INNER JOIN mission m ON t.id = m.task_id
+        INNER JOIN mission_records mr ON m.id = mr.mission_id
+        where t.deleted = 0 and m.deleted = 0 and mr.deleted = 0
+        and t.id = #{taskId}
+        <if test="flag == 1">
+        and mr.create_time &lt; (select create_time from mission_records where id = #{missionRecordsId})
+        </if>
+        <if test="flag == 0">
+            and mr.id != #{missionRecordsId}
+        </if>
+        ORDER BY mr.create_time desc
+    </select>
+    <select id="getMissionPhoto" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT
+            distinct mp.*
+        FROM
+            mission_photo mp,
+            mission_photo_type_rel mpt
+        WHERE
+            mp.id = mpt.mission_photo_id
+            AND mpt.type IN ( 3, 4, 5, 6 )
+            AND mp.deleted = 0
+            AND mpt.deleted = 0
+            AND mp.mission_records_id = #{missionRecordsId}
+    </select>
+</mapper>

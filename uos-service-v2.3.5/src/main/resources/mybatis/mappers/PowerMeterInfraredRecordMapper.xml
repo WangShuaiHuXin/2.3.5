@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerMeterInfraredRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.PowerMeterInfraredRecordEntity">
+        <result column="id" property="id"/>
+        <result column="infrared_record_id" property="infraredRecordId"/>
+        <result column="detail_id" property="detailId"/>
+        <result column="max_temperature" property="maxTemperature"/>
+        <result column="min_temperature" property="minTemperature"/>
+        <result column="avg_temperature" property="avgTemperature"/>
+        <result column="site_x1" property="siteX1"/>
+        <result column="site_y1" property="siteY1"/>
+        <result column="site_x2" property="siteX2"/>
+        <result column="site_y2" property="siteY2"/>
+        <result column="max_site_x" property="maxSiteX"/>
+        <result column="max_site_y" property="maxSiteY"/>
+        <result column="min_site_x" property="minSiteX"/>
+        <result column="min_site_y" property="minSiteY"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="modified_time" property="modifiedTime"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="modifier_id" property="modifierId"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        infrared_record_id,
+        detail_id,
+        max_temperature,
+        min_temperature,
+        avg_temperature,
+        site_x1,
+        site_y1,
+        site_x2,
+        site_y2,
+        max_site_x,
+        max_site_y,
+        min_site_x,
+        min_site_y,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+    <update id="deleteByDetailIdList">
+        UPDATE power_meter_infrared_record SET MODIFIER_ID=#{accountId}, MODIFIED_TIME=now(), deleted = 1
+        WHERE deleted=0 AND DETAIL_ID in
+        <foreach collection="detailIdList" open="(" item="detailIdItem" separator="," close=")">
+            #{detailIdItem}
+        </foreach>
+    </update>
+
+    <select id="selectInfraredValueByValueIds" parameterType="java.lang.String"
+            resultType="com.imapcloud.nest.v2.dao.entity.PowerMeterInfraredRecordEntity">
+        select *
+        from
+        power_meter_infrared_record
+        where infrared_record_id
+        in
+        <foreach collection="list" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+    </select>
+
+    <select id="selectInfraredValueByValueIdsNotDelete" parameterType="java.lang.String"
+            resultType="com.imapcloud.nest.v2.dao.entity.PowerMeterInfraredRecordEntity">
+        select *
+        from
+        power_meter_infrared_record
+        where 1=1
+        AND infrared_record_id  in
+        <foreach collection="list" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+        and deleted=0
+    </select>
+
+    <insert id="batchSave" useGeneratedKeys="true" keyColumn="id" keyProperty="id"
+            parameterType="com.imapcloud.nest.v2.dao.entity.PowerMeterInfraredRecordEntity">
+        insert into power_meter_infrared_record(infrared_record_id, detail_id, max_temperature
+        , min_temperature, avg_temperature, site_x1, site_y1
+        , site_x2, site_y2, max_site_x, max_site_y
+        , min_site_x, min_site_y, creator_id, modifier_id)
+        values
+        <foreach collection="entityList" item="entity" separator=",">
+            (#{entity.infraredRecordId}, #{entity.detailId}, #{entity.maxTemperature}
+            , #{entity.minTemperature}, #{entity.avgTemperature}, #{entity.siteX1}, #{entity.siteY1}
+            , #{entity.siteX2}, #{entity.siteY2}, #{entity.maxSiteX}, #{entity.maxSiteY}
+            , #{entity.minSiteX}, #{entity.minSiteY}, #{entity.creatorId}, #{entity.modifierId})
+        </foreach>
+    </insert>
+
+    <update id="deleteByInfraredRecordId">
+        UPDATE power_meter_infrared_record SET MODIFIED_TIME=now(), deleted = 1
+        WHERE deleted=0 AND infrared_record_id=#{infraredRecordId}
+    </update>
+</mapper>

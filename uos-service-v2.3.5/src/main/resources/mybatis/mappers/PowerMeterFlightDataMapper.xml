@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerMeterFlightDataMapper">
+
+    <sql id="tableName">power_meter_flight_data</sql>
+
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC, id
+    </sql>
+
+    <sql id="whereCondition">
+        AND t0.iden_value=#{criteria.idenValue}
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode !=''">
+            AND t0.org_code = #{criteria.orgCode}
+        </if>
+        <if test="criteria.fromTime != null">
+            AND t0.flight_time &gt; #{criteria.fromTime}
+        </if>
+        <if test="criteria.toTime != null">
+            AND t0.flight_time &lt; #{criteria.toTime}
+        </if>
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            <bind name="keywordLike" value="'%' + criteria.keyword + '%'"/>
+            AND t0.task_name like #{keywordLike}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+            COUNT(*)
+        FROM
+            <include refid="tableName"/> AS t0
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.PowerMeterFlightDataEntity">
+        SELECT
+            t0.*
+        FROM
+            <include refid="tableName"/> AS t0
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+            <include refid="orderCondition"/>
+            <include refid="limitCondition"/>
+    </select>
+
+</mapper>

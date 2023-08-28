@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.GridManageMapper">
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.GridManageEntity">
+        insert into grid_manage (grid_manage_id, grid_region_id, west, south
+        , east, north, line, col)
+        values
+        <foreach collection="entityList" item="entity" separator=",">
+            (#{entity.gridManageId}, #{entity.gridRegionId}, #{entity.west}, #{entity.south}, #{entity.east},
+            #{entity.north}
+            , #{entity.line}, #{entity.col})
+        </foreach>
+    </insert>
+
+    <update id="batchDeleteTask" parameterType="java.util.List">
+        UPDATE grid_manage SET task_id = null WHERE task_id IN
+        <foreach collection="idList" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchClearMissionCount" parameterType="java.util.List">
+        UPDATE grid_manage SET mission_count = 0 WHERE task_id IN
+        <foreach collection="idList" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchClearProblem" parameterType="java.util.List">
+        UPDATE grid_manage SET problem_count = 0 WHERE task_id IN
+        <foreach collection="idList" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectByLngAndLat" resultType="java.util.List">
+        SELECT grid_manage_id
+        FROM grid_manage
+        WHERE (west <![CDATA[<=]]> #{lng} AND #{lng} <![CDATA[<]]> east)
+          AND (south <![CDATA[<=]]> #{lat} AND #{lat} <![CDATA[<]]> north)
+          AND deleted = 0
+          AND grid_region_id IN (SELECT grid_region_id FROM grid_region WHERE org_code = #{orgCode} AND deleted = 0);
+    </select>
+
+    <select id="selectByTask" resultType="string">
+        SELECT grid_manage_id
+        FROM grid_inspect_record
+        WHERE task_id = #{taskId}
+        AND is_newest = 1
+        GROUP BY grid_manage_id
+    </select>
+
+    <select id="selectGridManage" resultType="com.imapcloud.nest.v2.manager.dataobj.GridManageDO">
+        SELECT grid_manage_id, east, west, north, south
+        FROM grid_manage
+        WHERE
+<!--        grid_manage_id in (SELECT grid_manage_id FROM grid_manage_org_ref WHERE deleted = 0 AND-->
+<!--        <foreach collection="orgCodeList" open="(" close=")" separator="," item="id">-->
+<!--            org_code LIKE  CONCAT (#{id}, '%')-->
+<!--        </foreach>)and -->
+        deleted = 0;
+    </select>
+
+    <update id="batchUpdateIsRest">
+        UPDATE grid_manage SET is_reset = #{isReset} WHERE grid_manage_id IN
+        <foreach collection="list" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectOrgByManage" resultType="com.imapcloud.nest.v2.dao.po.out.GridManageOrgCodeOutPO">
+        SELECT t1.grid_manage_id, t2.org_code
+        FROM grid_manage t1
+            INNER JOIN grid_region t2 on t1.grid_region_id = t2.grid_region_id
+        WHERE t1.deleted = 0
+        AND t1.grid_manage_id IN
+        <foreach collection="list" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

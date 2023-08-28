@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.StationInfraredRecordMapper">
+
+
+    <!--<select id="listStatusCountByStatus" resultType="com.imapcloud.nest.model.StationDefectRecordEntity">
+    </select>-->
+    <select id="queryRecordByTagId" resultType="java.util.Map">
+        SELECT
+	t.`name`,
+	sir.modify_time,
+	sir.max_temperature,
+	t.photo_id as id,
+	if(t.is_temperature is not null,0,1) as is_emperature
+  FROM
+	(
+	SELECT DISTINCT mp.`name`,
+		(SELECT
+			sr1.max_temperature
+		FROM
+			station_infrared_record sr1
+		WHERE
+			sr1.photo_id = mp.id
+			and sr1.deleted = 0
+		ORDER BY
+			sr1.modify_time DESC
+			LIMIT 1
+		) AS is_temperature,
+		(
+		SELECT
+			sr2.photo_id
+		FROM
+			station_infrared_record sr2
+		WHERE
+			sr2.photo_id = mp.id
+			and sr2.deleted = 0
+		ORDER BY
+			sr2.modify_time DESC
+			LIMIT 1
+		) AS photo_id
+	FROM
+		mission_photo mp
+		INNER JOIN station_infrared_record sr ON mp.id = sr.photo_id
+	WHERE
+		mp.id in (select mission_photo_id from mission_photo_tag_rel where tag_id = #{tagId} and deleted != 1)
+		and sr.deleted = 0
+		and mp.deleted = 0
+	) t,
+	station_infrared_record sir
+WHERE
+	t.photo_id = sir.photo_id
+	order by sir.modify_time desc
+    </select>
+
+    <select id="queryMaxPicByMonth" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT(mp.time_created,'%Y-%m-%d') as createTime,
+        avg(sr.max_temperature) as maxTemperature
+    FROM
+        mission_photo mp
+        INNER JOIN station_infrared_record sr ON mp.id = sr.photo_id
+   where mp.id in (select mission_photo_id from mission_photo_tag_rel where tag_id = #{tagId} and deleted != 1)
+        and mp.`name` = #{photoName}
+        and mp.time_created &gt;= #{startTime}
+        and mp.time_created &lt;= #{endTime}
+        and sr.deleted = 0
+		and mp.deleted = 0
+        GROUP BY DATE_FORMAT(mp.time_created,'%Y-%m-%d')
+        order by DATE_FORMAT(mp.time_created,'%Y-%m-%d') asc
+    </select>
+    <select id="queryMinPicByMonth" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT(mp.time_created,'%Y-%m-%d') as createTime,
+        avg(sr.min_temperature) as minTemperature
+    FROM
+        mission_photo mp
+        INNER JOIN station_infrared_record sr ON mp.id = sr.photo_id
+   where mp.id in (select mission_photo_id from mission_photo_tag_rel where tag_id = #{tagId} and deleted != 1)
+        and mp.`name` = #{photoName}
+        and mp.time_created &gt;= #{startTime}
+        and mp.time_created &lt;= #{endTime}
+        and sr.deleted = 0
+		and mp.deleted = 0
+        GROUP BY DATE_FORMAT(mp.time_created,'%Y-%m-%d')
+        order by DATE_FORMAT(mp.time_created,'%Y-%m-%d') asc
+    </select>
+    <select id="queryAvgPicByMonth" resultType="java.util.Map">
+    SELECT
+        DATE_FORMAT(mp.time_created,'%Y-%m-%d') as createTime,
+        avg(sr.avg_temperature) as avgTemperature
+    FROM
+        mission_photo mp
+        INNER JOIN station_infrared_record sr ON mp.id = sr.photo_id
+   where mp.id in (select mission_photo_id from mission_photo_tag_rel where tag_id = #{tagId} and deleted != 1)
+        and mp.`name` = #{photoName}
+        and mp.time_created &gt;= #{startTime}
+        and mp.time_created &lt;= #{endTime}
+        and sr.deleted = 0
+		and mp.deleted = 0
+        GROUP BY DATE_FORMAT(mp.time_created,'%Y-%m-%d')
+        order by DATE_FORMAT(mp.time_created,'%Y-%m-%d') asc
+    </select>
+    <select id="queryPhotosByPhotoName" resultType="com.imapcloud.nest.pojo.dto.StationInfraredRecordDto">
+         SELECT
+            mp.*, sr.id AS sid, sr.avg_temperature,sr.max_temperature,sr.min_temperature,sr.pip_url,sr.record_url,sr.flag, gr.tag_id,sun_url
+        FROM
+            mission_photo mp
+            INNER JOIN mission_photo_tag_rel gr on mp.id = gr.mission_photo_id
+            INNER JOIN mission_photo_type_rel pr on mp.id = pr.mission_photo_id
+            LEFT JOIN station_infrared_record sr ON mp.id = sr.photo_id and sr.deleted = 0
+            <!--LEFT JOIN mission_photo mp1 ON ABS(TIMESTAMPDIFF(SECOND,mp.time_created,mp1.time_created)) = 0
+              and mp.mission_records_id = mp1.mission_records_id and mp1.deleted = 0
+              and (mp1.photo_type = 0 or mp1.photo_type = 4) and mp.waypoint_index = mp1.waypoint_index-->
+            where gr.deleted = 0 AND pr.deleted = 0 and mp.deleted = 0
+            and pr.type = #{params.type}
+            AND gr.tag_id = #{params.tagId}
+            <!--and (mp.photo_type = 1 or mp.photo_type = 3)-->
+            <if test="params.name != null and params.name !=''">
+            and mp.`name` = #{params.name}
+            </if>
+            <if test="params.missionRecordsId != null and params.missionRecordsId !=''">
+            and mp.`mission_records_id` = #{params.missionRecordsId}
+            </if>
+            <if test="params.defectStatus != null">
+                and sr.`flag` = #{params.defectStatus}
+            </if>
+		    order by mp.time_created desc
+   </select>
+    <select id="queryPhotos" resultType="com.imapcloud.nest.pojo.dto.StationInfraredRecordDto">
+         SELECT
+            mp.*,sr.avg_temperature,sr.max_temperature,sr.min_temperature
+        FROM
+            mission_photo mp
+            INNER JOIN station_infrared_record sr ON mp.id = sr.photo_id
+            where mp.id in (select mission_photo_id from mission_photo_tag_rel where tag_id = #{tagId} and deleted != 1)
+            and sr.deleted = 0
+		    and mp.deleted = 0
+    </select>
+</mapper>

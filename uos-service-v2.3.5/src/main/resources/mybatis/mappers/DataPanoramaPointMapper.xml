@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataPanoramaPointMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataPanoramaPointEntity" >
+        <result column="id" property="id" />
+        <result column="point_id" property="pointId" />
+        <result column="point_name" property="pointName" />
+        <result column="point_height" property="pointHeight" />
+        <result column="point_longitude" property="pointLongitude" />
+        <result column="point_latitude" property="pointLatitude" />
+        <result column="point_type" property="pointType" />
+        <result column="address" property="address" />
+        <result column="tag_id" property="tagId" />
+        <result column="task_id" property="taskId" />
+        <result column="air_line_id" property="airLineId" />
+        <result column="air_point_id" property="airPointId" />
+        <result column="org_code" property="orgCode" />
+        <result column="base_nest_id" property="baseNestId" />
+        <result column="creator_id" property="creatorId" />
+        <result column="created_time" property="createdTime" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        point_id,
+        point_name,
+        point_height,
+        point_longitude,
+        point_latitude,
+        point_type,
+        address,
+        tag_id,
+        task_id,
+        air_line_id,
+        air_point_id,
+        org_code,
+        base_nest_id,
+        creator_id,
+        created_time,
+        modifier_id,
+        modified_time,
+        deleted,
+    </sql>
+
+    <sql id="tableName">data_panorama_point</sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.imapcloud.nest.v2.dao.entity.DataPanoramaPointEntity">
+        INSERT INTO data_panorama_point
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != pointId and '' != pointId">
+                point_id,
+            </if>
+            <if test="null != pointName and '' != pointName">
+                point_name,
+            </if>
+            <if test="null != pointHeight and '' != pointHeight">
+                point_height,
+            </if>
+            <if test="null != pointLongitude and '' != pointLongitude">
+                point_longitude,
+            </if>
+            <if test="null != pointLatitude and '' != pointLatitude">
+                point_latitude,
+            </if>
+            <if test="null != pointType and '' != pointType">
+                point_type,
+            </if>
+            <if test="null != address and '' != address">
+                address,
+            </if>
+            <if test="null != tagId and '' != tagId">
+                tag_id,
+            </if>
+            <if test="null != taskId and '' != taskId">
+                task_id,
+            </if>
+            <if test="null != airLineId and '' != airLineId">
+                air_line_id,
+            </if>
+            <if test="null != airPointId and '' != airPointId">
+                air_point_id,
+            </if>
+            <if test="null != orgCode and '' != orgCode">
+                org_code,
+            </if>
+            <if test="null != baseNestId and '' != baseNestId">
+                base_nest_id,
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                creator_id,
+            </if>
+            <if test="null != createdTime and '' != createdTime">
+                created_time,
+            </if>
+            <if test="null != modifierId and '' != modifierId">
+                modifier_id,
+            </if>
+            <if test="null != modifiedTime and '' != modifiedTime">
+                modified_time,
+            </if>
+            <if test="null != deleted and '' != deleted">
+                deleted,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="null != pointId and '' != pointId">
+                #{pointId},
+            </if>
+            <if test="null != pointName and '' != pointName">
+                #{pointName},
+            </if>
+            <if test="null != pointHeight and '' != pointHeight">
+                #{pointHeight},
+            </if>
+            <if test="null != pointLongitude and '' != pointLongitude">
+                #{pointLongitude},
+            </if>
+            <if test="null != pointLatitude and '' != pointLatitude">
+                #{pointLatitude},
+            </if>
+            <if test="null != pointType and '' != pointType">
+                #{pointType},
+            </if>
+            <if test="null != address and '' != address">
+                #{address},
+            </if>
+            <if test="null != tagId and '' != tagId">
+                #{tagId},
+            </if>
+            <if test="null != taskId and '' != taskId">
+                #{taskId},
+            </if>
+            <if test="null != airLineId and '' != airLineId">
+                #{airLineId},
+            </if>
+            <if test="null != airPointId and '' != airPointId">
+                #{airPointId},
+            </if>
+            <if test="null != orgCode and '' != orgCode">
+                #{orgCode},
+            </if>
+            <if test="null != baseNestId and '' != baseNestId">
+                #{baseNestId},
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                #{creatorId},
+            </if>
+            <if test="null != createdTime and '' != createdTime">
+                #{createdTime},
+            </if>
+            <if test="null != modifierId and '' != modifierId">
+                #{modifierId},
+            </if>
+            <if test="null != modifiedTime and '' != modifiedTime">
+                #{modifiedTime},
+            </if>
+            <if test="null != deleted and '' != deleted">
+                #{deleted},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="deleteOne" >
+        DELETE FROM data_panorama_point
+        WHERE point_id = #{pointId}
+    </delete>
+
+    <update id="updateByPointId" parameterType="com.imapcloud.nest.v2.dao.entity.DataPanoramaPointEntity">
+        UPDATE data_panorama_point
+        <set>
+            <if test="null != pointName and '' != pointName">point_name = #{pointName},</if>
+            <if test="null != pointHeight and '' != pointHeight">point_height = #{pointHeight},</if>
+            <if test="null != pointLongitude and '' != pointLongitude">point_longitude = #{pointLongitude},</if>
+            <if test="null != pointLatitude and '' != pointLatitude">point_latitude = #{pointLatitude},</if>
+            <if test="null != pointType and '' != pointType">point_type = #{pointType},</if>
+            <if test="null != address and '' != address">address = #{address},</if>
+            <if test="null != tagId and '' != tagId">tag_id = #{tagId},</if>
+            <if test="null != taskId and '' != taskId">task_id = #{taskId},</if>
+            <if test="null != airLineId and '' != airLineId">air_line_id = #{airLineId},</if>
+            <if test="null != airPointId and '' != airPointId">air_point_id = #{airPointId},</if>
+            <if test="null != orgCode and '' != orgCode">org_code = #{orgCode},</if>
+            <if test="null != baseNestId and '' != baseNestId">base_nest_id = #{baseNestId},</if>
+            <if test="null != creatorId and '' != creatorId">creator_id = #{creatorId},</if>
+            <if test="null != createdTime and '' != createdTime">created_time = #{createdTime},</if>
+            <if test="null != modifierId and '' != modifierId">modifier_id = #{modifierId},</if>
+            <if test="null != modifiedTime and '' != modifiedTime">modified_time = #{modifiedTime},</if>
+            <if test="null != deleted and '' != deleted">deleted = #{deleted},</if>
+            <if test="null != userId and '' != userId">user_id = #{userId},</if>
+            <if test="null != username and '' != username">username = #{username},</if>
+            <if test="null != status and '' != status">status = #{status},</if>
+            <if test="null != createTime and '' != createTime">create_time = #{createTime}</if>
+        </set>
+        WHERE point_id = #{pointId}
+    </update>
+
+    <!-- 左连接查询SQL -->
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC , t0.id DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.startTime != null and criteria.startTime != ''">
+            AND t0.created_time &gt;= #{criteria.startTime}
+        </if>
+        <if test="(criteria.startTime != null and criteria.startTime != '') and (criteria.endTime != null and criteria.endTime != '')">
+            AND t0.created_time &lt;= #{criteria.endTime}
+        </if>
+        <if test="criteria.airLineId != null and criteria.airLineId != ''">
+            AND t0.air_line_id = #{criteria.airLineId}
+        </if>
+        <if test="criteria.airPointId != null and criteria.airPointId != ''">
+            AND t0.air_point_id = #{criteria.airPointId}
+        </if>
+        <if test="criteria.tagId != null and criteria.tagId != ''">
+            AND t0.tag_id = #{criteria.tagId}
+        </if>
+        <if test="criteria.pointName != null and criteria.pointName != ''">
+            AND t0.point_name like #{criteria.pointName}"%"
+        </if>
+        <if test="criteria.pointType != null ">
+            AND t0.point_type = #{criteria.pointType}
+        </if>
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode !=''">
+            AND t0.org_code = #{criteria.orgCode}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(1)
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.DataPanoramaPointEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerMeterFlightDetailMapper">
+
+    <sql id="tableName">power_meter_flight_detail</sql>
+
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+<!--    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC, id
+    </sql>-->
+    <sql id="orderCondition">
+        ORDER BY t0.component_name,id DESC
+    </sql>
+    <sql id="whereCondition">
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.dataId != null and criteria.dataId !=''">
+            AND t0.data_id = #{criteria.dataId}
+        </if>
+        <if test="criteria.deviceState != null">
+            AND t0.device_state = #{criteria.deviceState}
+        </if>
+        <if test="criteria.readingState != null">
+            AND t0.reading_state = #{criteria.readingState}
+        </if>
+        <if test="criteria.verificationStatus != null">
+            AND t0.verification_status=#{criteria.verificationStatus}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+            COUNT(*)
+        FROM
+            <include refid="tableName"/> AS t0
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.PowerMeterFlightDetailEntity">
+        SELECT
+            t0.*
+        FROM
+            <include refid="tableName"/> AS t0
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+            <include refid="orderCondition"/>
+            <include refid="limitCondition"/>
+    </select>
+    <select id="groupByDeviceState" resultType="com.imapcloud.nest.v2.dao.po.out.MeterDeviceStateStatsOutPO">
+        SELECT device_state AS deviceState, count(*) AS total FROM power_meter_flight_detail
+        WHERE deleted = 0 AND data_id = #{dataId}
+        GROUP BY device_state
+    </select>
+
+    <update id="updateByDetailIdList">
+        update <include refid="tableName"/>
+        set alarm_reason = NULL, reading_state=1, algorithm_pic_url = null, discern_pic_url = null
+        where deleted = 0 and detail_id in 
+            <foreach collection="detailIdList" open="(" separator="," item="detailIdItem" close=")">
+                #{detailIdItem}
+            </foreach>
+    </update>
+</mapper>

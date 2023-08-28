@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.IllegalPointMapper">
+    <select id="getExportIllegalPoint" resultType="com.imapcloud.nest.pojo.vo.IllegalPointVO">
+        SELECT
+            t2.`name` AS beforeFileName, t3.`name` AS afterFileName,
+            t1.id, t1.`name`, t1.area, t1.photo_url AS photo,
+            t1.longitude, t1.latitude,
+            t1.height, t1.note, t1.type, t1.create_time
+        FROM illegal_point t1
+        LEFT JOIN file_info t2 ON t2.id = t1.before_file_id
+        LEFT JOIN file_info t3 ON t3.id = t1.after_file_id
+        WHERE t1.before_file_id = #{beforeFileId} AND t1.after_file_id = #{afterFileId} AND t1.deleted = 0
+    </select>
+
+    <select id="getCloseLatitudePhoto" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT id, latitude, longitude, photo_url
+        FROM mission_photo
+        WHERE deleted = 0
+        AND id IN
+        <foreach collection="photoIdList" item="photoId" index="index" open="(" close=")" separator=",">
+            #{photoId}
+        </foreach>
+        AND  latitude IS NOT NULL
+        AND  longitude IS NOT NULL
+        AND (latitude between #{latitude} - #{relRangeLat} AND #{latitude} + #{relRangeLat})
+        AND (longitude BETWEEN #{longitude} - #{relRangeLon} AND #{longitude} + #{relRangeLon})
+        ORDER BY abs(#{latitude} - latitude)
+    </select>
+
+    <select id="getCloseLongitudePhoto" resultType="com.imapcloud.nest.model.MissionPhotoEntity">
+        SELECT id, latitude, longitude, photo_url, thumbnail_url
+        FROM mission_photo
+        WHERE deleted = 0 AND latitude = #{latitude}
+        ORDER BY abs(#{longitude} - longitude), create_time DESC
+		LIMIT 1
+    </select>
+
+    <select id="getIllegalListByTag" resultType="com.imapcloud.nest.model.IllegalPointEntity">
+        SELECT fi.`name`AS fileName, fi.date_time AS fileDateTime, fi.record_time AS recordTime, ip.*
+        FROM illegal_point ip
+        LEFT JOIN file_info fi ON fi.id = ip.after_file_id
+        WHERE ip.deleted = 0 AND fi.deleted = 0 AND fi.type = #{type} AND fi.tag_id = #{tagId}
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(fi.record_time) &gt;= #{startTime} and Date(fi.record_time) &lt;= #{endTime}
+        </if>
+    </select>
+
+
+    <select id="getTagPointCloudList" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TagPointCloudDTO">
+        SELECT st.`name` AS tagName, pc.id AS pointCloudId, pc.*
+        FROM data_point_cloud pc
+        LEFT JOIN sys_tag st ON st.id = pc.tag_id
+        LEFT JOIN data_tag_type tt ON tt.data_id = pc.id
+        WHERE pc.deleted = 0 AND tt.deleted = 0 AND tt.type = 8
+        <if test="orgCode != null and orgCode !=''">
+            AND st.org_code = #{orgCode}
+        </if>
+    </select>
+
+    <select id="getTagOrthoList" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TagOrthoDTO">
+        SELECT st.`name` AS tagName, do.id AS orthoId, do.*,'' as shp_url
+        FROM data_ortho do
+        LEFT JOIN sys_tag st ON st.id = do.tag_id
+        LEFT JOIN data_tag_type tt ON tt.data_id = do.id
+        WHERE do.deleted = 0 AND tt.deleted = 0 AND tt.type = #{problemSource} AND tt.data_type=2
+        <if test="orgCode != null and orgCode !=''">
+            AND st.org_code = #{orgCode}
+        </if>
+        union all
+        SELECT st.`name` AS tagName, do.id AS orthoId, do.*
+        FROM data_multispectral do
+        LEFT JOIN sys_tag st ON st.id = do.tag_id
+        LEFT JOIN data_tag_type tt ON tt.data_id = do.id
+        WHERE do.deleted = 0 AND tt.deleted = 0 AND tt.type = #{problemSource} AND tt.data_type=9
+        <if test="orgCode != null and orgCode !=''">
+            AND st.org_code = #{orgCode}
+        </if>
+    </select>
+
+    <select id="getIllegalPhotoIdList" resultType="long">
+        SELECT DISTINCT mp.id
+        FROM mission_photo mp
+        LEFT JOIN mission_photo_tag_rel gr ON gr.mission_photo_id = mp.id
+        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id
+        WHERE mp.deleted = 0 AND pr.deleted = 0 AND gr.deleted = 0
+          AND pr.type = #{problemSource} AND gr.tag_id = #{tagId}
+    </select>
+    <select id="getHistoryPhotoInfo" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT
+        mp.id AS photoId, mp.name AS photoName, mp.photo_url, mp.thumbnail_url AS photoThumbUrl,
+        mr.create_time AS photoTime, mp.latitude AS lat, mp.longitude AS lng
+        FROM mission_photo mp
+        LEFT JOIN mission_records mr ON mr.id = mp.mission_records_id
+        WHERE mp.deleted = 0
+        AND
+        <!--        (mp.id = #{photoId}-->
+        <!--        OR -->
+        mp.id IN
+        <foreach collection="photoIdList" item="photoId" index="index" open="(" close=")" separator=",">
+            #{photoId}
+        </foreach>
+        <!--        )-->
+        AND mp.latitude IS NOT NULL AND mp.longitude IS NOT NULL
+        AND (mp.latitude between #{latitude} - #{relRangeLat} AND #{latitude} + #{relRangeLat})
+        AND (mp.longitude BETWEEN #{longitude} - #{relRangeLon} AND #{longitude} + #{relRangeLon})
+
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            AND Date(mr.create_time) &gt;= #{startTime} and Date(mr.create_time) &lt;= #{endTime}
+        </if>
+        ORDER BY mp.create_time DESC
+    </select>
+
+    <!--    <select id="getPointCloudRelatedPhoto" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">-->
+    <!--        SELECT mp.id AS photoId, mp.thumbnail_url AS photoThumbUrl, mp.photo_url, mp.create_time AS photoTime-->
+    <!--        FROM data_point_cloud pc-->
+    <!--        LEFT JOIN mission_photo mp ON mp.mission_records_id = pc.mission_records_id-->
+    <!--        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id-->
+    <!--        WHERE pc.id = #{afterFileId} AND pr.type = #{dataType}-->
+    <!--    </select>-->
+    <!--    <select id="getOrthoRelatedPhoto" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">-->
+    <!--        SELECT mp.id AS photoId, mp.thumbnail_url AS photoThumbUrl, mp.photo_url, mp.create_time AS photoTime-->
+    <!--        FROM data_ortho do-->
+    <!--        LEFT JOIN mission_photo mp ON mp.mission_records_id = do.mission_records_id-->
+    <!--        LEFT JOIN mission_photo_type_rel pr ON pr.mission_photo_id = mp.id-->
+    <!--        WHERE do.id = #{afterFileId} AND pr.type = #{dataType}-->
+    <!--    </select>-->
+
+    <select id="getRelatedPhoto" resultType="com.imapcloud.nest.pojo.dto.dataProblemDTO.TaskPhotoDTO">
+        SELECT mp.id AS photoId, mp.thumbnail_url AS photoThumbUrl, mp.photo_url, mp.create_time AS photoTime, mp.latitude AS lat, mp.longitude AS lng
+        FROM data_mission_record dr
+        LEFT JOIN mission_photo mp ON mp.mission_records_id = dr.mission_records_id
+        WHERE mp.deleted = 0 AND dr.deleted = 0 AND dr.data_id = #{afterFileId} AND dr.data_type =#{dataType}
+    </select>
+
+    <select id="getRecordsIdBySameTask" resultType="Integer">
+        SELECT mission_records_id  FROM data_mission_record WHERE task_id = #{taskId} AND data_type = #{dataType} AND mission_records_id != #{missionRecordsId} AND deleted = 0
+    </select>
+
+    <select id="getPointCloudIdByTaskId" resultType="Integer">
+        SELECT pc.id
+        FROM data_point_cloud pc
+        LEFT JOIN data_tag_type tt ON tt.data_id = pc.id
+        WHERE pc.deleted = 0 AND tt.deleted = 0 AND pc.task_id = #{taskId} AND pc.id != #{dataId} AND tt.type = #{problemSource}
+    </select>
+
+    <select id="getOrthoIdByTaskId" resultType="Integer">
+        SELECT pc.id
+        FROM data_ortho do
+        LEFT JOIN data_tag_type tt ON tt.data_id = do.id
+        WHERE do.deleted = 0 AND tt.deleted = 0 AND do.task_id = #{taskId} AND do.id != #{dataId} AND tt.type = #{problemSource}
+    </select>
+
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.FileEventInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.FileEventInfoEntity" >
+        <result column="id" property="id" />
+        <result column="event_time" property="eventTime" />
+        <result column="event_data" property="eventData" />
+        <result column="event_status" property="eventStatus" />
+        <result column="syn_status" property="synStatus" />
+        <result column="event_type" property="eventType" />
+        <result column="bucket" property="bucket" />
+        <result column="object" property="object" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        event_time,
+        event_data,
+        event_status,
+        syn_status,
+        event_type,
+        bucket,
+        object,
+        deleted
+    </sql>
+
+    <update id="batchUpdate" parameterType="com.imapcloud.nest.v2.dao.entity.FileEventInfoEntity">
+        <foreach collection="entityList" item="entity" separator=";">
+            UPDATE file_event_info set event_status = #{entity.eventStatus}, syn_status = #{entity.synStatus}
+                , event_type = #{entity.eventType}, bucket = #{entity.bucket}, object = #{entity.object}
+            WHERE id = #{entity.id}
+        </foreach>
+    </update>
+
+    <select id="selectNotAnalysisList" resultType="com.imapcloud.nest.v2.dao.entity.FileEventInfoEntity">
+        select *
+        from file_event_info
+        where event_status=0
+        order by id asc
+        limit 500;
+    </select>
+
+    <select id="selectNotSynList" resultType="com.imapcloud.nest.v2.dao.entity.FileEventInfoEntity">
+        select *
+        from file_event_info
+        where syn_status=0 and event_type = #{eventType} and event_status=1
+        order by id asc
+        limit 100;
+    </select>
+    <delete id="deleteOther">
+        delete from file_event_info where event_status=1 and event_type = 0;
+    </delete>
+
+    <delete id="deleteSyn">
+        delete from file_event_info where event_status=1 and syn_status = 1;
+    </delete>
+
+    <delete id="deleteChunk">
+        delete from file_event_info where object like '%.chunk';
+    </delete>
+</mapper>

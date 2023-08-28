@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.GridManageOrgRelMapper">
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.GridManageOrgRelEntity">
+        insert into grid_manage_org_ref (grid_manage_id, org_code)
+        values
+        <foreach collection="entityList" item="entity" separator=",">
+            (#{entity.gridManageId}, #{entity.orgCode})
+        </foreach>
+    </insert>
+
+    <update id="batchDeleteTask" parameterType="java.util.List">
+        UPDATE grid_manage_org_ref SET task_id = null WHERE task_id IN
+        <foreach collection="idList" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateTaskId">
+        <foreach collection="entityList" item="entity" separator=";">
+            update grid_manage_org_ref
+            set task_id = #{entity.taskId}
+            where grid_manage_id=#{entity.gridManageId}
+            and deleted=0
+        </foreach>
+    </update>
+
+    <select id="queryOrgCode" resultType="string">
+        SELECT org_code
+        FROM grid_manage_org_ref
+        WHERE
+        <bind name="orgLike" value="orgCode + '%'"/>
+            org_code LIKE #{orgLike}
+          AND deleted = 0
+        GROUP BY org_code ;
+    </select>
+
+    <select id="queryGridManage" resultType="string">
+        SELECT grid_manage_id
+        FROM grid_manage_org_ref
+        WHERE
+        <bind name="orgLike" value="orgCode + '%'"/>
+        org_code LIKE #{orgLike}
+          AND deleted = 0
+        GROUP BY grid_manage_id ;
+    </select>
+
+</mapper>

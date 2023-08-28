@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.GridRegionMapper">
+
+    <select id="selectGridRegion" resultType="com.imapcloud.nest.v2.dao.entity.GridRegionEntity">
+        SELECT *
+        FROM grid_region
+        WHERE
+        deleted = 0
+        <bind name="orgCodeLike" value="orgCode + '%'"/>
+        AND org_code LIKE #{orgCodeLike}
+    </select>
+
+    <select id="selectGridRegionByGridManageIds" resultType="com.imapcloud.nest.v2.dao.entity.GridRegionEntity">
+        SELECT *
+        FROM grid_region
+        WHERE grid_region_id IN
+            (SELECT grid_region_id
+             FROM grid_manage
+             WHERE grid_manage_id IN
+                <foreach collection="list" open="(" close=")" separator="," item="id">
+                    #{id}
+                </foreach>
+             GROUP BY grid_region_id)
+    </select>
+
+</mapper>

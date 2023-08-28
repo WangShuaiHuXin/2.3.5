@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.ImageDataMapper">
+    <select id="getThumbnailPage" resultType="com.imapcloud.nest.pojo.dto.reqDto.ImageDataReqDto">
+        SELECT t1.*
+        FROM image_data t1
+        WHERE
+            t1.deleted = 0
+        <if test="orgCode != null and orgCode !=''">
+            AND t1.org_code = #{orgCode}
+        </if>
+        <if test="name != null and name !=''">
+            and t1.name like CONCAT('%',#{name},'%')
+        </if>
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and t1.record_time between #{startTime} and #{endTime}
+        </if>
+        <if test="region != null and region !=''">
+            AND t1.region = #{region}
+        </if>
+        ORDER BY id DESC
+    </select>
+
+    <select id="getInfoById" resultType="com.imapcloud.nest.model.ImageDataEntity">
+        SELECT t1.*
+        FROM image_data t1
+        WHERE t1.id = #{id}
+    </select>
+
+    <update id="deleteByIdList">
+        UPDATE image_data SET deleted = 1 WHERE id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

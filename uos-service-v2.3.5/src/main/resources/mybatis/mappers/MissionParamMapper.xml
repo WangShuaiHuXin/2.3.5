@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MissionParamMapper">
+
+    <delete id="batchSoftDeleteByIds" parameterType="java.util.List">
+        UPDATE mission_param SET deleted = 1 WHERE id IN
+        <foreach collection="idList" open="(" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

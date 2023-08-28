@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.DefectTypeTrafficMapper">
+
+    <select id="getAllList" resultType="com.imapcloud.nest.model.DefectTypeTrafficEntity">
+        SELECT * FROM defect_type_traffic
+        WHERE deleted = 0 and org_code = #{orgCode} and type = #{type}
+        <if test="name != null and name !=''">
+            and name like CONCAT('%',#{name},'%')
+        </if>
+    </select>
+</mapper>

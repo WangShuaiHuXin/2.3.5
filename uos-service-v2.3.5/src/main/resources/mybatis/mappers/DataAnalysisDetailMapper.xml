@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisDetailMapper">
+
+    <sql id="tableName">data_analysis_center_detail</sql>
+
+    <!-- 左连接查询SQL -->
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.photo_create_time DESC , t0.id DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.missionRecordId != null">
+            AND t0.mission_record_id = #{criteria.missionRecordId}
+        </if>
+        <if test="criteria.excludeMissionRecordId != null">
+            AND t0.mission_record_id != #{criteria.excludeMissionRecordId}
+        </if>
+        <if test="criteria.photoState != null ">
+            AND t0.photo_state = #{criteria.photoState}
+        </if>
+        <if test="criteria.pushState != null">
+            AND t0.push_state = #{criteria.pushState}
+        </if>
+        <if test="criteria.picType != null">
+            AND t0.pic_type = #{criteria.picType}
+        </if>
+        <if test="criteria.centerBaseId != null and criteria.centerBaseId != ''">
+            AND t0.center_base_id = #{criteria.centerBaseId}
+        </if>
+        <if test="criteria.centerDetailId != null and criteria.centerDetailId != ''">
+            AND t0.center_detail_id = #{criteria.centerDetailId}
+        </if>
+        <if test="criteria.notExistDetailId != null and criteria.notExistDetailId != ''">
+            AND t0.center_detail_id != #{criteria.notExistDetailId}
+        </if>
+        <if test="criteria.taskId != null and criteria.taskId != ''">
+            AND t0.task_id = #{criteria.taskId}
+        </if>
+        <if test="criteria.upDistinct != null and criteria.upDistinct != ''
+                    and criteria.downDistinct != null and criteria.downDistinct != ''">
+            AND t0.latitude &gt;= #{criteria.downDistinct} and t0.latitude &lt;= #{criteria.upDistinct}
+        </if>
+        <if test="criteria.leftDistinct != null and criteria.leftDistinct != ''
+                    and criteria.rightDistinct != null and criteria.rightDistinct != ''">
+            AND t0.longitude &gt;= #{criteria.leftDistinct} and t0.longitude &lt;= #{criteria.rightDistinct}
+        </if>
+        <if test="criteria.startTime != null and criteria.startTime != ''">
+            AND t0.created_time &gt;= #{criteria.startTime}
+        </if>
+        <if test="(criteria.startTime != null and criteria.startTime != '') and (criteria.endTime != null and criteria.endTime != '')">
+            AND t0.created_time &lt;= #{criteria.endTime}
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            AND t0.org_code = #{criteria.orgCode}
+        </if>
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.missionId != null">
+            AND t0.mission_id=#{criteria.missionId}
+        </if>
+    </sql>
+
+    <!-- 查询实际条件 -->
+    <sql id="whereConditionForQuery">
+        <if test="detailPO.missionRecordId != null and detailPO.missionRecordId != ''">
+            AND t0.mission_record_id = #{detailPO.missionRecordId}
+        </if>
+        <if test="detailPO.missionId != null and detailPO.missionId != ''">
+            AND t0.mission_id = #{detailPO.missionId}
+        </if>
+        <if test="detailPO.photoState != null and detailPO.photoState != ''">
+            AND t0.photo_state = #{detailPO.photoState}
+        </if>
+        <if test="detailPO.pushState != null and detailPO.pushState != ''">
+            AND t0.push_state = #{detailPO.pushState}
+        </if>
+        <if test="detailPO.startTime != null and detailPO.startTime != ''">
+            AND t0.created_time &gt;= #{detailPO.startTime}
+        </if>
+        <if test="(detailPO.startTime != null and detailPO.startTime != '') and (detailPO.endTime != null and detailPO.endTime != '')">
+            AND t0.created_time &lt;= #{detailPO.endTime}
+        </if>
+        <if test="detailPO.orgCode != null and detailPO.orgCode != ''">
+            AND t0.org_code = #{detailPO.orgCode}
+        </if>
+        <if test="detailPO.visibleOrgCode != null and detailPO.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="detailPO.visibleOrgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="detailPO.centerBaseId != null and detailPO.centerBaseId != ''">
+            AND t0.center_base_id = #{detailPO.centerBaseId}
+        </if>
+    </sql>
+
+    <sql id="whereConditionForHistoryPic">
+        <if test="taskId != null and taskId != ''">
+            AND t0.mission_record_id = #{taskId}
+        </if>
+        <if test="detailPO.missionId != null and detailPO.missionId != ''">
+            AND t0.mission_id = #{detailPO.missionId}
+        </if>
+        <if test="detailPO.photoState != null and detailPO.photoState != ''">
+            AND t0.photo_state = #{detailPO.photoState}
+        </if>
+        <if test="detailPO.pushState != null and detailPO.pushState != ''">
+            AND t0.push_state = #{detailPO.pushState}
+        </if>
+        <if test="detailPO.startTime != null and detailPO.startTime != ''">
+            AND t0.created_time &gt;= #{detailPO.startTime}
+        </if>
+        <if test="(detailPO.startTime != null and detailPO.startTime != '') and (detailPO.endTime != null and detailPO.endTime != '')">
+            AND t0.created_time &lt;= #{detailPO.endTime}
+        </if>
+        <if test="detailPO.orgCode != null and detailPO.orgCode != ''">
+            AND t0.org_code = #{detailPO.orgCode}
+        </if>
+        <if test="detailPO.centerBaseId != null and detailPO.centerBaseId != ''">
+            AND t0.center_base_id = #{detailPO.centerBaseId}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(1)
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisCenterDetailEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <choose>
+            <when test="criteria.desc == 1">
+                ORDER BY t0.photo_create_time DESC , t0.id DESC
+            </when>
+            <otherwise>
+                ORDER BY t0.photo_create_time ASC , t0.id DESC
+            </otherwise>
+        </choose>
+        <include refid="limitCondition"/>
+    </select>
+
+
+    <select id="countStateSum" resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisStateSumOutPO">
+        select
+        t0.*
+        from
+        <include refid="tableName" /> as t0
+    </select>
+
+    <select id="countStateSumByDate" resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisStateSumOutPO"></select>
+
+
+    <select id="queryByCondition" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisCenterDetailEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereConditionForQuery"/>
+        <include refid="orderCondition"/>
+    </select>
+
+    <select id="queryDeleteDataById" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisCenterDetailEntity">
+        SELECT
+            t0.center_detail_id
+            ,t0.image_path
+            ,t0.thum_image_path
+            ,t0.image_mark_path
+            ,t0.thum_image_mark_path
+        FROM
+        <include refid="tableName" /> AS t0
+        WHERE
+<!--            t0.deleted = 1-->
+        <if test="detailIds != null and detailIds.size() > 0">
+<!--            and -->
+            t0.center_detail_id in
+            <foreach collection="detailIds" item="detailId" open="(" separator="," close=")">
+                #{detailId}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="queryHistoryPic" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisCenterDetailEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereConditionForHistoryPic"/>
+        <include refid="orderCondition"/>
+
+    </select>
+
+    <select id="queryDetailMarkNum" resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisDetailMarkNumOutPO">
+        SELECT
+            d.center_detail_id detailId,
+            m.deleted,
+            count( m.mark_id ) markNum
+        FROM
+            data_analysis_center_detail d
+        LEFT JOIN
+            data_analysis_mark m
+        ON d.center_detail_id = m.detail_id
+        where d.deleted = 0
+        <if test="markIds != null and markIds.size() > 0">
+            and exists
+            (select
+                1
+            from
+                data_analysis_mark mm
+            where  mm.detail_id = d.center_detail_id
+            and mm.mark_id in
+                <foreach collection="markIds" item="markId" open="(" separator="," close=")">
+                    #{markId}
+                </foreach>
+            )
+        </if>
+        group by d.center_detail_id,m.deleted
+    </select>
+
+    <select id="queryMissionRecordInfo" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisCenterDetailEntity">
+        select t0.task_id, t0.mission_id, t0.mission_record_id
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        group by t0.task_id, t0.mission_id, t0.mission_record_id
+    </select>
+</mapper>

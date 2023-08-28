@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerInspectionReportValueRelMapper">
+
+    <insert id="saveBatch" parameterType="com.imapcloud.nest.v2.dao.entity.PowerInspectionReportValueRelEntity">
+
+        INSERT INTO `power_inspection_report_value_rel`
+        ( `id`,
+        `inspection_report_id`,
+        `value_id`,
+        `creator_id`,
+        `created_time`,
+        `modifier_id`,
+        `modified_time`,
+        `deleted` )
+        VALUES
+        <foreach collection="list" item="bean" separator=",">
+            ( null,
+            #{bean.inspectionReportId},
+            #{bean.valueId},
+            #{bean.creatorId},
+            #{bean.createdTime},
+            #{bean.modifierId},
+            #{bean.modifiedTime},
+            #{bean.deleted} )
+        </foreach>
+    </insert>
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisMarkMergeMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkMergeEntity">
+        <result column="id" property="id"/>
+        <result column="result_group_id" property="resultGroupId"/>
+        <result column="mark_id" property="markId"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="modified_time" property="modifiedTime"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="modifier_id" property="modifierId"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        result_group_id,
+        mark_id,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkMergeEntity">
+        INSERT INTO data_analysis_mark_merge(result_group_id, mark_id, created_time, modified_time, creator_id,
+        modifier_id)
+        values
+        <foreach collection="entityList" item="entityItem" separator=",">( #{entityItem.resultGroupId},
+            #{entityItem.markId}, #{entityItem.createdTime}
+            , #{entityItem.modifiedTime}, #{entityItem.creatorId}, #{entityItem.modifierId}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectIsMergeGroup" parameterType="long" resultType="String">
+        SELECT result_group_id
+        FROM `data_analysis_mark_merge`
+        where
+        mark_id=#{markId}
+        and deleted=0
+    </select>
+
+    <select id="queryDataByMarkId" parameterType="long"
+            resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkMergeEntity">
+        SELECT * FROM data_analysis_mark_merge where mark_id in
+        <foreach collection="markIds" open="(" close=")" separator="," item="markId">
+            #{markId}
+        </foreach>
+        and deleted='0'
+    </select>
+
+    <select id="selectAllByMarkIdList" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkMergeEntity">
+        SELECT * FROM data_analysis_mark_merge where mark_id in
+        <foreach collection="markIdCollection" open="(" close=")" separator="," item="markId">
+            #{markId}
+        </foreach>
+    </select>
+
+    <select id="selectAllByGroupIdList" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkMergeEntity">
+        SELECT * FROM data_analysis_mark_merge where result_group_id in
+        <foreach collection="groupIdCollection" open="(" close=")" separator="," item="groupId">
+            #{groupId}
+        </foreach>
+    </select>
+</mapper>

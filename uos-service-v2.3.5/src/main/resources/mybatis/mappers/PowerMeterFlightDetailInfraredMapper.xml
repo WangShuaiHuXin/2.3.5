@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerMeterFlightDetailInfraredMapper">
+
+    <update id="batchDeleteByDetailIdList" parameterType="list">
+        UPDATE power_meter_flight_detail_infrared
+        SET deleted = 1, modifier_id=#{accountId}
+        WHERE detail_id IN <foreach collection="detailIds" open="(" item="id" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <insert id="batchSave" parameterType="list" >
+        INSERT INTO power_meter_flight_detail_infrared
+        (
+        detail_id,
+        detail_name,
+        data_id,
+        photo_id,
+        photo_name,
+        picture_url,
+        infrated_url,
+        thumbnail_url,
+        device_state,
+        temperature_state,
+        verification_state,
+        reason,
+        shooting_time,
+        org_code,
+        pms_id,
+        area_layer_id,
+        area_layer_name,
+        sub_area_layer_id,
+        sub_area_layer_name,
+        unit_layer_id,
+        unit_layer_name,
+        device_layer_id,
+        device_layer_name,
+        component_id,
+        component_name,
+        waypoint_id,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id, equipment_name, task_state
+        )
+        VALUES
+        <foreach collection="list" item="bean" separator=",">
+            (
+            #{bean.detailId},
+            #{bean.detailName},
+            #{bean.dataId}, #{bean.photoId},
+            #{bean.photoName},
+            #{bean.pictureUrl},
+            #{bean.infratedUrl},
+            #{bean.thumbnailUrl},
+            #{bean.deviceState},
+            #{bean.temperatureState},
+            #{bean.verificationState},
+            #{bean.reason},
+            #{bean.shootingTime},
+            #{bean.orgCode},
+            #{bean.pmsId},
+            #{bean.areaLayerId},
+            #{bean.areaLayerName},
+            #{bean.subAreaLayerId},
+            #{bean.subAreaLayerName},
+            #{bean.unitLayerId},
+            #{bean.unitLayerName},
+            #{bean.deviceLayerId},
+            #{bean.deviceLayerName},
+            #{bean.componentId},
+            #{bean.componentName},
+            #{bean.waypointId},
+            now(),
+            now(),
+            #{bean.creatorId},
+            #{bean.modifierId}, #{bean.equipmentName}, #{bean.taskState}
+            )
+        </foreach>
+    </insert>
+
+    <select id="countGroupByDeviceStateByDataId" parameterType="string" resultType="com.imapcloud.nest.v2.dao.po.out.DeviceStateStatisticPO">
+        SELECT device_state,COUNT(*) counts FROM power_meter_flight_detail_infrared
+        WHERE deleted=0 and data_id = #{dataId}
+        GROUP BY device_state;
+    </select>
+
+    <update id="batchUpdateInfraredState" parameterType="com.imapcloud.nest.v2.dao.po.in.PowerMeterFlightDetailInfraredInPO$InfraredStateInPO">
+        <foreach collection="entityList" item="entity" separator=";">
+            update power_meter_flight_detail_infrared
+            set temperature_state=#{entity.temperatureState}, task_state=#{entity.taskState}
+            where deleted=0 and detail_id=#{entity.paramDetailId}
+        </foreach>
+    </update>
+</mapper>

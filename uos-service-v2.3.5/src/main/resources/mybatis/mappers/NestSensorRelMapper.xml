@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.NestSensorRelMapper">
+
+    <update id="deleteNestSensor" >
+        UPDATE nest_sensor_rel SET deleted = 1
+        WHERE base_nest_id = #{nestId} AND id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getSensorByNestId" resultType="com.imapcloud.nest.model.NestSensorRelEntity">
+        SELECT t2.id, t2.`name` AS name, t1.volume, t1.`repeat` FROM nest_sensor_rel t1
+        LEFT JOIN sensor t2 ON t2.id = t1.sensor_id
+        WHERE t1.base_nest_id = #{nestId} AND t1.deleted = 0
+    </select>
+
+    <select id="getSpeakerSensorByNestId" resultType="com.imapcloud.nest.model.NestSensorRelEntity">
+        SELECT * FROM nest_sensor_rel WHERE nest_id = #{nestId} AND sensor_id = 1 AND deleted = 0
+    </select>
+
+    <select id="getNestSensorId" resultType="integer">
+        SELECT * FROM nest_sensor_rel WHERE nest_id = #{nestId} AND sensor_id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <delete id="deleteByNestId" parameterType="integer">
+        DELETE FROM nest_sensor_rel WHERE base_nest_id = #{nestId}
+    </delete>
+
+    <update id="updateVolumeByNestId" >
+    UPDATE nest_sensor_rel SET volume = #{volume} WHERE base_nest_id = #{nestId} AND sensor_id = 1 AND deleted = 0
+    </update>
+
+    <update id="updateRepeatByNestId" >
+    UPDATE nest_sensor_rel SET `repeat` = #{repeat} WHERE nest_id = #{nestId} AND sensor_id = 1 AND deleted = 0
+    </update>
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.model.NestSensorRelEntity">
+        insert into nest_sensor_rel(base_nest_id, sensor_id, create_time, modify_time, creator_id)
+        values
+        <foreach collection="entityList" item="item" open="" separator="," close="">
+            (#{item.baseNestId}, #{item.sensorId}, #{item.createTime}, #{item.modifyTime}, #{item.creatorId})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="com.imapcloud.nest.model.NestSensorRelEntity">
+        <foreach collection="entityList" item="item" open="" separator=";" close="">
+            update nest_sensor_rel set deleted=#{item.deleted}, modify_time=#{item.modifyTime}
+            where id=#{item.id}
+        </foreach>
+    </update>
+
+    <select id="getListByNestId" resultType="com.imapcloud.nest.model.NestSensorRelEntity">
+        SELECT * FROM nest_sensor_rel WHERE base_nest_id = #{nestId} AND deleted=0
+    </select>
+
+    <update id="deleteBySensorIdList">
+        update nest_sensor_rel set deleted = 1, modify_time=#{time}
+        where deleted=0 and sensor_id in
+            <foreach collection="sensorIdList" open="(" item="item" separator="," close=")">
+                #{item}
+            </foreach>
+    </update>
+
+    <update id="deleteByBaseNestId">
+        update nest_sensor_rel set deleted = 1
+        where base_nest_id = #{nestId} AND deleted=0
+    </update>
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerWaypointLedgerInfoMapper">
+
+    <update id="updateToDeleteByOrg" parameterType="String">
+    update  power_waypoint_ledger_info  set  deleted='1'
+        where  deleted='0'  and  org_code=#{orgCode}
+    </update>
+    <insert id="saveList" parameterType="com.imapcloud.nest.v2.dao.entity.PowerWaypointLedgerInfoEntity">
+        INSERT INTO power_waypoint_ledger_info (
+        `id`,
+        `waypoint_station_id`,
+        `component_id`,
+        `waypoint_name`,
+        `device_layer_name`,
+        `device_layer_id`,
+        `unit_layer_name`,
+        `unit_layer_id`,
+        `sub_region_name`,
+        `sub_region_id`,
+        `equipment_area_name`,
+        `equipment_area_id`,
+        `substation_name`,
+        `waypoint_id`,
+        `equipment_id`,
+        `maps_json_path`,
+        `substation_routelist_json_path`,
+        `substation_tree_json_path`,
+        `whole_unit_json_path`,
+        `org_code`,
+        `creator_id`,
+        `created_time`,
+        `modifier_id`,
+        `modified_time`,
+        `deleted`,
+        `latitude`,
+        `longitude`,
+        `altitude`
+        )
+        VALUES
+        <foreach collection="list" item="bean" separator=",">
+            (
+            NULL,
+            #{bean.waypointStationId},
+            #{bean.componentId},
+            #{bean.waypointName},
+            #{bean.deviceLayerName},
+            #{bean.deviceLayerId},
+            #{bean.unitLayerName},
+            #{bean.unitLayerId},
+            #{bean.subRegionName},
+            #{bean.subRegionId},
+            #{bean.equipmentAreaName},
+            #{bean.equipmentAreaId},
+            #{bean.substationName},
+            #{bean.waypointId},
+            '',
+            #{bean.mapsJsonPath},
+            #{bean.substationRoutelistJsonPath},
+            #{bean.substationTreeJsonPath},
+            #{bean.wholeUnitJsonPath},
+            #{bean.orgCode},
+            #{bean.creatorId},
+            NOW(),
+            #{bean.modifierId},
+            NOW(),
+            '0',
+            #{bean.latitude},
+            #{bean.longitude},
+            #{bean.altitude}
+            )
+        </foreach>
+    </insert>
+</mapper>

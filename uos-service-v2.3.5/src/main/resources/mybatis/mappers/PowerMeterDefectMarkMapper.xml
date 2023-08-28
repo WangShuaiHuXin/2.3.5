@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerMeterDefectMarkMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.PowerMeterDefectMarkEntity" >
+        <result column="id" property="id" />
+        <result column="defect_mark_id" property="defectMarkId" />
+        <result column="detail_id" property="detailId" />
+        <result column="site_x1" property="siteX1" />
+        <result column="site_y1" property="siteY1" />
+        <result column="site_x2" property="siteX2" />
+        <result column="site_y2" property="siteY2" />
+        <result column="ai_mark" property="aiMark" />
+        <result column="device_state" property="deviceState" />
+        <result column="industry_type" property="industryType" />
+        <result column="topic_problem_id" property="topicProblemId" />
+        <result column="topic_problem_name" property="topicProblemName" />
+        <result column="creator_id" property="creatorId" />
+        <result column="created_time" property="createdTime" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="modified_time" property="modifiedTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        defect_mark_id,
+        detail_id,
+        site_x1,
+        site_y1,
+        site_x2,
+        site_y2,
+        ai_mark,
+        device_state,
+        industry_type,
+        topic_problem_id,
+        topic_problem_name,
+        mark_no,
+        creator_id,
+        created_time,
+        modifier_id,
+        modified_time
+    </sql>
+    <insert id="batchAdd" parameterType="com.imapcloud.nest.v2.dao.entity.PowerMeterDefectMarkEntity">
+
+        insert into power_meter_defect_mark (
+            defect_mark_id,detail_id,site_x1,site_y1
+            ,site_x2,site_y2,ai_mark,device_state
+            ,industry_type,topic_problem_id
+            ,topic_problem_name,creator_id
+            ,created_time,modifier_id,modified_time
+        ) values
+        <foreach collection="entityList" item="entity" separator=",">
+            (
+            #{entity.defectMarkId}, #{entity.detailId}, #{entity.siteX1}, #{entity.siteY1}
+            , #{entity.siteX2}, #{entity.siteY2}, #{entity.aiMark}, #{entity.deviceState}
+            , #{entity.industryType}, #{entity.topicProblemId}
+            , #{entity.topicProblemName}, #{entity.creatorId}
+            , #{entity.createdTime}, #{entity.modifierId}, #{entity.modifiedTime}
+            )
+        </foreach>
+    </insert>
+</mapper>

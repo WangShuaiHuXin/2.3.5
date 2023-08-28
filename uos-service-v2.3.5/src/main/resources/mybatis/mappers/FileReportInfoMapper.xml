@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.FileReportInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.FileReportInfoEntity" >
+        <result column="id" property="id" />
+        <result column="app" property="app" />
+        <result column="org_code" property="orgCode" />
+        <result column="nest_id" property="nestId" />
+        <result column="picture_size" property="pictureSize" />
+        <result column="video_size" property="videoSize" />
+        <result column="video_picture_size" property="videoPictureSize" />
+        <result column="total_size" property="totalSize" />
+        <result column="report_day" property="reportDay" />
+        <result column="report_month" property="reportMonth" />
+        <result column="tag_version" property="tagVersion" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        app,
+        org_code,
+        nest_id,
+        picture_size,
+        video_size,
+        video_picture_size,
+        total_size,
+        report_day,
+        report_month,
+        tag_version,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.FileReportInfoEntity">
+        insert into file_report_info (app,org_code,nest_id,picture_size,video_size
+            ,video_picture_size,total_size,report_day,report_month,tag_version)
+        values
+        <foreach collection="entityList" item="entity" separator=",">
+            (#{entity.app}, #{entity.orgCode}, #{entity.nestId}, #{entity.pictureSize}, #{entity.videoSize}
+            , #{entity.videoPictureSize}, #{entity.totalSize}, #{entity.reportDay}
+            , #{entity.reportMonth}, #{entity.tagVersion})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="com.imapcloud.nest.v2.dao.entity.FileReportInfoEntity">
+        <foreach collection="entityList" item="entity" separator=";">
+            update file_report_info set picture_size=#{entity.pictureSize}, video_size=#{entity.videoSize}
+            , video_picture_size=#{entity.videoPictureSize}, total_size=#{entity.totalSize}
+            where id=#{entity.id}
+        </foreach>
+    </update>
+
+    <select id="selectTotalByOrgCode" resultType="com.imapcloud.nest.v2.dao.entity.FileReportInfoEntity">
+        select sum(picture_size) pictureSize, sum(video_size) videoSize, sum(video_picture_size) videoPictureSize
+        from file_report_info
+        where org_code=#{orgCode} and deleted=0
+    </select>
+
+    <select id="trend" parameterType="com.imapcloud.nest.v2.dao.po.in.FileReportInfoInPO$TrendInPO"
+            resultType="com.imapcloud.nest.v2.dao.po.out.FileReportInfoOutPO$FileTrendOutPO">
+        select sum(picture_size) pictureSize, sum(video_size) videoSize, sum(video_picture_size) videoPictureSize
+            , report_day reportDay, report_month reportMonth
+        from file_report_info
+        where org_code=#{orgCode} and deleted=0
+        <if test="nestId != null">
+            and nest_id=#{nestId}
+        </if>
+        <choose>
+            <when test="type == 1">
+                and report_month in
+                <foreach collection="timeList" open="(" item="it" separator="," close=")">
+                    #{it}
+                </foreach>
+            </when>
+            <otherwise>
+                and report_day in
+                <foreach collection="timeList" open="(" item="it" separator="," close=")">
+                    #{it}
+                </foreach>
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="type == 1">
+                group by report_month
+            </when>
+            <otherwise>
+                group by report_day
+            </otherwise>
+        </choose>
+    </select>
+
+    <sql id="where">
+        where deleted=0 and org_code=#{orgCode}
+        <if test="nestId != null">
+            and nest_id=#{nestId}
+        </if>
+        <if test="startTime != null">
+            and report_day <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            and report_day <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </sql>
+
+    <select id="listCount" parameterType="com.imapcloud.nest.v2.dao.po.in.FileReportInfoInPO$ListInPO" resultType="_long">
+        select count(1)
+        from (
+            select nest_id
+            from file_report_info
+            <include refid="where" />
+            group by nest_id
+        ) t1
+    </select>
+
+    <select id="list" parameterType="com.imapcloud.nest.v2.dao.po.in.FileReportInfoInPO$ListInPO"
+            resultType="com.imapcloud.nest.v2.dao.po.out.FileReportInfoOutPO$FileListOutPO">
+        select sum(picture_size) pictureSize, sum(video_size) videoSize, sum(video_picture_size) videoPictureSize
+            , sum(total_size) totalSize, nest_id nestId
+        from file_report_info
+        <include refid="where" />
+        group by nest_id
+        <choose>
+            <when test="orderBy == 'picture'">
+                order by pictureSize
+            </when>
+            <when test="orderBy == 'video'">
+                order by videoSize
+            </when>
+            <when test="orderBy == 'videoPicture'">
+                order by videoPictureSize
+            </when>
+            <otherwise>
+                order by totalSize
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="asc == 1">
+                asc
+            </when>
+            <otherwise>
+                desc
+            </otherwise>
+        </choose>
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="totalReport" resultType="com.imapcloud.nest.v2.dao.entity.FileReportInfoEntity">
+        select sum(picture_size) pictureSize, sum(video_size) videoSize, sum(video_picture_size) videoPictureSize
+            , sum(total_size) totalSize
+        from file_report_info
+        where deleted=0 and tag_version=#{tagVersion}
+         <if test="reportDay != null">
+             and report_day=#{reportDay}
+         </if>
+    </select>
+</mapper>

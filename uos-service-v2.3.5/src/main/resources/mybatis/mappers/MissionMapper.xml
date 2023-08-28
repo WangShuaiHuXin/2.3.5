@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MissionMapper">
+    <resultMap id="missionEntityMap" type="com.imapcloud.nest.model.MissionEntity">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="uuid" column="uuid"/>
+        <result property="seqId" column="seq_id"/>
+        <result property="airLineId" column="air_line_id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="missionParamId" column="mission_param_id"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+    <resultMap id="MissionDto" type="com.imapcloud.nest.pojo.dto.MissionDto">
+        <id property="id" column="id"/>
+        <result property="missionId" column="mission_id"/>
+        <result property="name" column="name"/>
+        <result property="uuid" column="uuid"/>
+        <result property="appId" column="app_id"/>
+        <result property="seqId" column="seq_id"/>
+        <result property="airLineId" column="air_line_id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="missionParamId" column="mission_param_id"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="deleted" column="deleted"/>
+        <result property="taskName" column="task_name"/>
+        <result property="flyIndex" column="fly_index"/>
+        <result property="endTime" column="end_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="dataStatus" column="data_status"/>
+        <result property="gainDataMode" column="gain_data_mode"/>
+        <result property="gainVideo" column="gain_video"/>
+        <result property="gainVideoData" column="gain_video_data"/>
+        <result property="status" column="status"/>
+        <result property="photoCount" column="photo_count"/>
+        <result property="videoCount" column="video_count"/>
+        <result property="tagId" column="tag_id"/>
+        <result property="tagName" column="tag_name"/>
+    </resultMap>
+    <sql id="missionEntitySql">
+        id
+        ,name,uuid,seq_id,air_line_id,task_id,mission_param_id,create_user_id,create_time,modify_time,deleted
+    </sql>
+
+    <select id="batchSelectByTaskIdList" resultMap="missionEntityMap">
+        SELECT
+        <include refid="missionEntitySql"/>
+        FROM mission
+        WHERE
+        deleted = 0 AND
+        task_id IN
+        <foreach collection="taskIdList" open="(" close=")" separator="," item="taskId">
+            #{taskId}
+        </foreach>
+    </select>
+
+    <select id="getAllMissionPage" resultMap="MissionDto">
+        SELECT
+        t1.id AS mission_id, t1.name, t1.task_id AS task_id, t2.name AS task_name,
+        t3.id , t3.fly_index, t3.start_time AS start_time,t3.end_time AS end_time,
+        t3.status AS status, t3.data_status AS data_status, t3.gain_data_mode AS gain_data_mode,
+        t3.gain_video AS gain_video, t3.gain_video_data AS gain_video_data, t3.create_user_id,
+        t4.uuid AS uuid, t5.photo_count AS photo_count, t5.video_count AS video_count, t5.id AS air_line_id,
+        st.id as tag_id,st.`name` as tag_name ,t3.uav_which
+        FROM mission t1
+        LEFT JOIN task t2 ON t2.id = t1.task_id
+        LEFT JOIN mission_records t3 ON t3.mission_id = t1.id AND t3.deleted = 0
+        LEFT JOIN base_nest t4 ON t2.base_nest_id = t4.nest_id
+        LEFT JOIN air_line t5 ON t5.id = t1.air_line_id
+        LEFT JOIN sys_task_tag stt ON stt.task_id = t1.task_id AND stt.deleted = 0
+        LEFT JOIN sys_tag st ON st.id = stt.tag_id
+        WHERE t3.deleted = 0
+        AND t3.exec_id != '' AND t3.exec_id IS NOT NULL
+        AND t4.nest_id = #{nestId}
+        <if test="taskName != null and taskName !=''">
+            AND t2.name LIKE CONCAT('%',#{taskName},'%')
+        </if>
+        <if test="execIds != null and execIds.size() > 0">
+            AND t3.exec_id IN
+            <foreach collection="execIds" item="execId" index="index" open="(" close=")"
+                     separator=",">
+                #{execId}
+            </foreach>
+        </if>
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t1.org_code LIKE #{orgCodeLike}
+        </if>
+        ORDER BY t3.create_time DESC
+    </select>
+
+    <select id="getAppMissionRecordPage" resultMap="MissionDto">
+        SELECT
+        t1.id AS mission_id, t1.name, t1.task_id AS task_id,
+        t2.name AS task_name,
+        t3.id , t3.fly_index, t3.start_time AS start_time,t3.end_time AS end_time,
+        t3.status AS status, t3.data_status AS data_status, t3.gain_data_mode AS gain_data_mode, t3.gain_video AS
+        gain_video, t3.app_id
+        FROM mission t1
+        LEFT JOIN task t2 ON t2.id = t1.task_id
+        LEFT JOIN mission_records t3 ON t3.mission_id = t1.id AND t3.deleted = 0
+        WHERE t3.deleted = 0 AND t3.base_app_id = #{appId}
+        <if test="taskName != null and taskName !=''">
+            and t2.name like CONCAT('%',#{taskName},'%')
+        </if>
+        ORDER BY t3.create_time DESC
+    </select>
+
+    <select id="getUuidById" resultType="string">
+        SELECT uuid
+        FROM mission
+        WHERE id = #{id}
+    </select>
+
+    <select id="batchSelectAirLineIdAndTaskIdByTaskIdList" resultMap="missionEntityMap">
+        SELECT air_line_id, task_id
+        FROM mission
+        WHERE task_id IN
+        <foreach collection="taskIdList" open="(" close=")" separator="," item="taskId">
+            #{taskId}
+        </foreach>
+    </select>
+
+    <select id="listMissionByNestId" resultMap="MissionDto">
+        select
+        m.*,
+        t.name as task_name
+        from nest n
+        LEFT JOIN task t ON t.nest_id = n.id
+        left join mission m on m.task_id = t.id
+        where n.id = #{nestId}
+        <if test="taskName != null and taskName !=''">
+            and t.name like CONCAT('%',#{taskName},'%')
+        </if>
+        and m.deleted = 0
+    </select>
+
+    <select id="getNestIdById" resultType="integer">
+        SELECT nest_id
+        FROM task
+        WHERE id = (SELECT task_id FROM mission WHERE id = #{id})
+    </select>
+
+    <delete id="batchSoftDeleteByIds" parameterType="java.util.List">
+        UPDATE mission SET deleted = 1 WHERE id IN
+        <foreach collection="idList" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getMissionByNestUuid" resultType="com.imapcloud.nest.pojo.dto.unifyAirLineDto.AppMissionAircraftDTO">
+        SELECT t1.id AS missionId, t1.`name` AS missionName, t1.create_time AS createTime, t1.modify_time AS modifyTime,
+        t1.deleted
+        FROM mission t1
+        LEFT JOIN task t2 ON t2.id = t1.task_id
+        LEFT JOIN nest t3 ON t3.nest_id = t2.nest_id
+        LEFT JOIN air_line t4 ON t4.id = t1.air_line_id
+        WHERE t3.uuid = #{nestUuid}
+        <if test="lastTime !=null and lastTime != ''">
+            AND unix_timestamp(t1.create_time)*1000 > #{lastTime}
+        </if>
+        limit #{limit}
+    </select>
+
+    <select id="selectNameById" resultType="java.lang.String">
+        SELECT name
+        FROM mission
+        WHERE id = #{id}
+          AND deleted = 0;
+    </select>
+    <select id="getAllMissionsByNestTaskName" resultType="com.imapcloud.nest.pojo.dto.MissionDto">
+        SELECT
+        t1.id AS mission_id, t1.name, t1.task_id AS task_id, t2.name AS task_name,
+        t3.id , t3.fly_index, t3.start_time AS start_time,t3.end_time AS end_time,
+        t3.status AS status, t3.data_status AS data_status, t3.gain_data_mode AS gain_data_mode, t3.gain_video AS
+        gain_video, t3.create_user_id,
+        t4.uuid AS uuid, t5.photo_count AS photo_count, t5.video_count AS video_count, t5.id AS air_line_id,
+        IFNULL(st.id, -1) as tag_id, st.`name` AS tagName
+        FROM mission t1
+        LEFT JOIN task t2 ON t2.id = t1.task_id
+        LEFT JOIN mission_records t3 ON t3.mission_id = t1.id AND t3.deleted = 0
+        LEFT JOIN base_nest t4 ON t2.base_nest_id = t4.nest_id
+        LEFT JOIN air_line t5 ON t5.id = t1.air_line_id
+        LEFT JOIN sys_task_tag stt ON stt.task_id = t1.task_id
+        LEFT JOIN sys_tag st ON st.id = stt.tag_id
+        WHERE t3.deleted = 0
+        and t4.nest_id = #{nestId}
+        <if test="taskName != null and taskName !=''">
+            and t2.name like CONCAT('%',#{taskName},'%')
+        </if>
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t1.org_code LIKE #{orgCodeLike}
+        </if>
+
+        ORDER BY t3.create_time DESC
+    </select>
+
+
+    <select id="selectRecordInfo" resultType="com.imapcloud.nest.v2.dao.po.out.NhOrderRecordInfoOutPO">
+        SELECT
+        t1.id AS missionId,
+        t1.NAME name,
+        t1.task_id AS taskId,
+        t2.NAME AS  taskName,
+        t3.id,
+        t3.fly_Index flyIndex,
+        t3.start_time AS startTime,
+        t3.end_time AS endTime,
+        t3.STATUS AS STATUS,
+        t3.data_status AS dataStatus,
+        t3.gain_data_mode AS gainDataMode,
+        t3.gain_video AS gainVideo,
+        t3.gain_video_data AS gainVideoData,
+        t4.uuid AS uuid,
+        t5.photo_count AS photoCount,
+        t5.video_count AS videoCount,
+        t5.id AS airLineId,
+        st.id AS tagId,
+        st.`name` AS tagIame,
+        t3.uav_which AS uavWhich
+        FROM
+        mission t1
+        LEFT JOIN task t2 ON t2.id = t1.task_id
+        LEFT JOIN mission_records t3 ON t3.mission_id = t1.id
+        AND t3.deleted = 0
+        LEFT JOIN base_nest t4 ON t2.base_nest_id = t4.nest_id
+        LEFT JOIN air_line t5 ON t5.id = t1.air_line_id
+        LEFT JOIN sys_task_tag stt ON stt.task_id = t1.task_id
+        AND stt.deleted = 0
+        LEFT JOIN sys_tag st ON st.id = stt.tag_id
+        WHERE
+        t1.id in
+        <foreach collection="list" item="bean" close=")" open="(" separator=",">
+            #{bean}
+        </foreach>
+
+    </select>
+</mapper>

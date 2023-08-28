@@ -1,0 +1,22 @@
+### 引导启动配置-测试环境（test） ###
+## spring cloud相关配置 ##
+spring:
+  cloud:
+    # 忽略多网卡获取IP问题
+    inetutils:
+      ignored-interfaces: [ 'VMware.*' ]
+    nacos:
+      # 注册中心
+      discovery:
+        server-addr: "dev.uos.geoai.com:8848"
+        namespace: "8867e481-9052-4f1e-b055-ef7126d1ba05"
+      # 配置中心
+      config:
+        group: ${spring.application.name}
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - data-id: geoai-common.yml
+            refresh: true

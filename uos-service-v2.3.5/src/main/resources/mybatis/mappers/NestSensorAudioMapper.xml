@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.NestSensorAudioMapper">
+
+    <select id="getListPage" resultType="com.imapcloud.nest.model.NestSensorAudioEntity">
+        SELECT * FROM nest_sensor_audio WHERE base_nest_id = #{nestId} AND deleted = 0
+        <if test="audioName != null and audioName != ''">
+            AND `audio_name`like CONCAT('%',#{audioName},'%')
+        </if>
+        ORDER BY create_time DESC
+    </select>
+</mapper>

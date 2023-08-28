@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.FileDetailInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.FileDetailInfoEntity" >
+        <result column="id" property="id" />
+        <result column="bucket" property="bucket" />
+        <result column="object" property="object" />
+        <result column="event_type" property="eventType" />
+        <result column="object_type" property="objectType" />
+        <result column="app" property="app" />
+        <result column="org_code" property="orgCode" />
+        <result column="nest_id" property="nestId" />
+        <result column="object_size" property="objectSize" />
+        <result column="object_time" property="objectTime" />
+        <result column="tag_version" property="tagVersion" />
+        <result column="syn_status" property="synStatus" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        bucket,
+        object,
+        event_type,
+        object_type,
+        app,
+        org_code,
+        nest_id,
+        object_size,
+        object_time,
+        tag_version,
+        syn_status,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.FileDetailInfoEntity">
+        insert into file_detail_info (bucket,object,event_type,object_type,app,org_code,nest_id,object_size,object_time,tag_version,syn_status)
+        values
+        <foreach collection="entityList" item="entity" separator=",">
+            (#{entity.bucket} ,#{entity.object} ,#{entity.eventType} ,#{entity.objectType} ,#{entity.app} ,#{entity.orgCode}
+            ,#{entity.nestId} ,#{entity.objectSize} ,#{entity.objectTime} ,#{entity.tagVersion} ,#{entity.synStatus})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="com.imapcloud.nest.v2.dao.entity.FileDetailInfoEntity">
+        <foreach collection="entityList" item="entity" separator=";">
+            update file_detail_info set event_type = #{entity.eventType}, syn_status = #{entity.synStatus}
+            where bucket=#{entity.bucket} and object=#{entity.object}
+        </foreach>
+    </update>
+
+    <select id="selectNotSynListByTagVersion" resultType="java.util.Map">
+        select app, org_code orgCode, nest_id nestId, date(object_time) reportDay
+        from file_detail_info
+        where syn_status=0 and tag_version=#{tagVersion}
+        group by app, org_code, nest_id, reportDay
+        limit 100;
+    </select>
+
+    <select id="dayReport" resultType="java.util.Map"
+            parameterType="com.imapcloud.nest.v2.dao.po.in.FileDetailInfoInPO$DayReportInPO">
+        select object_type objectType, sum(object_size) objectSize
+        from file_detail_info
+        where event_type=2 and tag_version=#{entity.tagVersion} and org_code=#{entity.orgCode}
+            and nest_id=#{entity.nestId}
+            and object_time between #{entity.startTime} and #{entity.endTime}
+        group by object_type
+    </select>
+</mapper>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PersonManageMapper">
+
+    <sql id="tableName">person_manage</sql>
+
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <sql id="limitCondition">
+        <if test="restrict != null">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+        </if>
+    </sql>
+
+    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC, t0.id
+    </sql>
+
+    <sql id="whereCondition">
+        <if test="criteria.name != null and criteria.name !=''">
+            <bind name="nameLike" value="'%' + criteria.name + '%'"/>
+            AND t0.name LIKE #{nameLike}
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            <bind name="orgCode" value="criteria.orgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCode}
+        </if>
+        <if test="criteria.orgCodeFromAccount != null and criteria.orgCodeFromAccount != ''">
+            <bind name="orgCodeFromAccount" value="criteria.orgCodeFromAccount + '%'"/>
+            AND t0.org_code LIKE #{orgCodeFromAccount}
+        </if>
+    </sql>
+
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+            COUNT(*)
+        FROM
+            <include refid="tableName"/> AS t0
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.PersonManageEntity">
+        SELECT
+            t0.*
+        FROM
+            <include refid="tableName"/> AS t0
+        WHERE
+            t0.deleted = 0
+            <include refid="whereCondition"/>
+            <include refid="orderCondition"/>
+            <include refid="limitCondition"/>
+    </select>
+
+
+</mapper>

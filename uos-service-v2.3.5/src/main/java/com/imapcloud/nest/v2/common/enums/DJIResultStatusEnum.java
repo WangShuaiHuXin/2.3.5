@@ -1,0 +1,66 @@
+package com.imapcloud.nest.v2.common.enums;
+
+import org.apache.commons.compress.utils.Lists;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author zhongtb
+ * @version 1.0.0
+ * @ClassName DJICommonLineEnum.java
+ * @Description DJICommonLineEnum
+ * @createTime 2022年07月08日 15:41:00
+ */
+public enum DJIResultStatusEnum {
+
+    SENT("sent", "已下发"),
+    IN_PROGRESS("in_progress", "执行中"),
+    OK("ok", "执行成功"),
+    PAUSED("paused", "暂停"),
+    REJECTED("rejected", "拒绝"),
+    FAILED("failed", "失败"),
+    CANCELED("canceled", "取消或终止"),
+    TIMEOUT("timeout", "超时"),
+    ;
+
+    private String code;
+    private String str;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getState() {
+        return str;
+    }
+
+    public void setState(String str) {
+        this.str = str;
+    }
+
+    DJIResultStatusEnum(String code, String str) {
+        this.code = code;
+        this.str = str;
+    }
+
+    public static List toList() {
+        //Lists.newArrayList()其实和new ArrayList()几乎一模
+        //  一样, 唯一它帮你做的(其实是javac帮你做的), 就是自动推导(不是"倒")尖括号里的数据类型.
+        List list = Lists.newArrayList();
+
+        for (DJIResultStatusEnum dataAnalysisPicTypeEnum : DJIResultStatusEnum.values()) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("code", dataAnalysisPicTypeEnum.getCode());
+            map.put("name", dataAnalysisPicTypeEnum.getState());
+            list.add(map);
+        }
+        return list;
+    }
+
+}

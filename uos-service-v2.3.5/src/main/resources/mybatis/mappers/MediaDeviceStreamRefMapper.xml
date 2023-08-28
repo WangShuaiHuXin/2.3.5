@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.MediaDeviceStreamRefMapper">
+
+    <insert id="batchInsert" parameterType="com.imapcloud.nest.v2.dao.entity.MediaDeviceStreamRefEntity">
+        insert into media_device_stream_ref(device_id, stream_id, creator_id, modifier_id, created_time, modified_time)
+        values
+        <foreach collection="entityList" item="item" separator=",">
+            (
+            #{item.deviceId}, #{item.streamId}, #{item.creatorId}, #{item.modifierId}, #{item.createdTime}, #{item.modifiedTime}
+            )
+        </foreach>
+    </insert>
+
+    <update id="deleteByDeviceIdList">
+        update media_device_stream_ref set deleted=1, modifier_id=#{accountId}
+        where deleted = 0 and device_id in
+            <foreach collection="deviceIdList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    </update>
+</mapper>

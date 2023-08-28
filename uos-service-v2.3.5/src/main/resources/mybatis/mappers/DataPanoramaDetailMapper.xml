@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataPanoramaDetailMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataPanoramaDetailEntity" >
+        <result column="id" property="id" />
+        <result column="detail_id" property="detailId" />
+        <result column="detail_url" property="detailUrl" />
+        <result column="point_id" property="pointId" />
+        <result column="mission_id" property="missionId" />
+        <result column="mission_records_id" property="missionRecordsId" />
+        <result column="air_line_id" property="airLineId" />
+        <result column="air_point_id" property="airPointId" />
+        <result column="mission_fly_index" property="missionFlyIndex" />
+        <result column="mission_record_time" property="missionRecordTime" />
+        <result column="acquisition_time" property="acquisitionTime" />
+        <result column="org_code" property="orgCode" />
+        <result column="base_nest_id" property="baseNestId" />
+        <result column="creator_id" property="creatorId" />
+        <result column="created_time" property="createdTime" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        detail_id,
+        detail_url,
+        point_id,
+        mission_id,
+        mission_records_id,
+        air_line_id,
+        air_point_id,
+        mission_fly_index,
+        mission_record_time,
+        acquisition_time,
+        org_code,
+        base_nest_id,
+        creator_id,
+        created_time,
+        modifier_id,
+        modified_time,
+        deleted
+    </sql>
+
+    <sql id="tableName">data_panorama_detail</sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.imapcloud.nest.v2.dao.entity.DataPanoramaDetailEntity">
+        INSERT INTO data_panorama_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != detailId and '' != detailId">
+                detail_id,
+            </if>
+            <if test="null != detailUrl and '' != detailUrl">
+                detail_url,
+            </if>
+            <if test="null != pointId and '' != pointId">
+                point_id,
+            </if>
+            <if test="null != missionId ">
+                mission_id,
+            </if>
+            <if test="null != missionRecordsId ">
+                mission_records_id,
+            </if>
+            <if test="null != airLineId ">
+                air_line_id,
+            </if>
+            <if test="null != airPointId ">
+                air_point_id,
+            </if>
+            <if test="null != missionFlyIndex ">
+                mission_fly_index,
+            </if>
+            <if test="null != missionRecordTime ">
+                mission_record_time,
+            </if>
+            <if test="null != acquisitionTime ">
+                acquisition_time,
+            </if>
+            <if test="null != orgCode and '' != orgCode">
+                org_code,
+            </if>
+            <if test="null != baseNestId ">
+                base_nest_id,
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                creator_id,
+            </if>
+            <if test="null != createdTime">
+                created_time,
+            </if>
+            <if test="null != modifierId and '' != modifierId">
+                modifier_id,
+            </if>
+            <if test="null != modifiedTime">
+                modified_time,
+            </if>
+            <if test="null != deleted and '' != deleted">
+                deleted
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="null != detailId and '' != detailId">
+                #{detailId},
+            </if>
+            <if test="null != detailUrl and '' != detailUrl">
+                #{detailUrl},
+            </if>
+            <if test="null != pointId and '' != pointId">
+                #{pointId},
+            </if>
+            <if test="null != missionId ">
+                #{missionId},
+            </if>
+            <if test="null != missionRecordsId ">
+                #{missionRecordsId},
+            </if>
+            <if test="null != airLineId ">
+                #{airLineId},
+            </if>
+            <if test="null != airPointId">
+                #{airPointId},
+            </if>
+            <if test="null != missionFlyIndex">
+                #{missionFlyIndex},
+            </if>
+            <if test="null != missionRecordTime ">
+                #{missionRecordTime},
+            </if>
+            <if test="null != acquisitionTime">
+                #{acquisitionTime},
+            </if>
+            <if test="null != orgCode and '' != orgCode">
+                #{orgCode},
+            </if>
+            <if test="null != baseNestId ">
+                #{baseNestId},
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                #{creatorId},
+            </if>
+            <if test="null != createdTime ">
+                #{createdTime},
+            </if>
+            <if test="null != modifierId and '' != modifierId">
+                #{modifierId},
+            </if>
+            <if test="null != modifiedTime ">
+                #{modifiedTime},
+            </if>
+            <if test="null != deleted and '' != deleted">
+                #{deleted}
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="deleteOne" >
+        DELETE FROM data_panorama_detail
+        WHERE detail_id = #{detailId}
+    </delete>
+
+    <update id="updateDetail" parameterType="com.imapcloud.nest.v2.dao.entity.DataPanoramaDetailEntity">
+        UPDATE data_panorama_detail
+        <set>
+            <if test="null != detailUrl and '' != detailUrl">detail_url = #{detailUrl},</if>
+            <if test="null != pointId and '' != pointId">point_id = #{pointId},</if>
+            <if test="null != missionId and '' != missionId">mission_id = #{missionId},</if>
+            <if test="null != missionRecordsId and '' != missionRecordsId">mission_records_id = #{missionRecordsId},</if>
+            <if test="null != airLineId and '' != airLineId">air_line_id = #{airLineId},</if>
+            <if test="null != airPointId and '' != airPointId">air_point_id = #{airPointId},</if>
+            <if test="null != missionFlyIndex and '' != missionFlyIndex">mission_fly_index = #{missionFlyIndex},</if>
+            <if test="null != missionRecordTime ">mission_record_time = #{missionRecordTime},</if>
+            <if test="null != acquisitionTime ">acquisition_time = #{acquisitionTime},</if>
+            <if test="null != orgCode and '' != orgCode">org_code = #{orgCode},</if>
+            <if test="null != baseNestId and '' != baseNestId">base_nest_id = #{baseNestId},</if>
+            <if test="null != creatorId and '' != creatorId">creator_id = #{creatorId},</if>
+            <if test="null != createdTime ">created_time = #{createdTime},</if>
+            <if test="null != modifierId and '' != modifierId">modifier_id = #{modifierId},</if>
+            <if test="null != modifiedTime ">modified_time = #{modifiedTime},</if>
+            <if test="null != deleted and '' != deleted">deleted = #{deleted}</if>
+        </set>
+        WHERE detail_id = #{detailId}
+    </update>
+
+
+    <!-- 左连接查询SQL -->
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.acquisition_time DESC , t0.id DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.startTime != null and criteria.startTime != ''">
+            AND t0.acquisition_time &gt;= #{criteria.startTime}
+        </if>
+        <if test="(criteria.startTime != null and criteria.startTime != '') and (criteria.endTime != null and criteria.endTime != '')">
+            AND t0.acquisition_time &lt;= #{criteria.endTime}
+        </if>
+        <if test="criteria.missionId != null and criteria.missionId != ''">
+            AND t0.mission_id = #{criteria.missionId}
+        </if>
+        <if test="criteria.missionRecordsId != null and criteria.missionRecordsId != ''">
+            AND t0.mission_records_id = #{criteria.missionRecordsId}
+        </if>
+        <if test="criteria.pointId != null and criteria.pointId != ''">
+            AND t0.point_id = #{criteria.pointId}
+        </if>
+        <if test="criteria.detailId != null and criteria.detailId != ''">
+            AND t0.detail_id = #{criteria.detailId}
+        </if>
+        <if test="criteria.visibleOrgCode != null and criteria.visibleOrgCode !=''">
+            <bind name="orgCodeLike" value="criteria.visibleOrgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(1)
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.DataPanoramaDetailEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/> AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+</mapper>

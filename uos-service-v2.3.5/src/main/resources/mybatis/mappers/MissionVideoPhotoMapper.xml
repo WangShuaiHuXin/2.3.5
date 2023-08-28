@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MissionVideoPhotoMapper">
+
+    <select id="queryDeleteList" resultType="com.imapcloud.nest.model.MissionVideoPhotoEntity">
+        select * from mission_video_photo
+        WHERE deleted = 1 and physics_delete = 0
+        order by id desc
+        limit 100;
+    </select>
+
+    <update id="updatePhysicsDelete">
+        update mission_video_photo set physics_delete = 1
+        where deleted = 1 and id in
+        <foreach collection="idList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="deleteByRecordId" parameterType="java.util.List">
+        UPDATE mission_video_photo SET deleted = 1 WHERE mission_records_id IN
+        <foreach collection="recordIdList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

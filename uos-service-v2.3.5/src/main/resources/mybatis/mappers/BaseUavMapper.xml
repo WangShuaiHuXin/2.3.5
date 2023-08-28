@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.BaseUavMapper">
+
+    <sql id="tableName">base_uav</sql>
+
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <sql id="orderCondition">
+        ORDER BY t0.id DESC
+    </sql>
+    <sql id="whereCondition">
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(*) FROM (
+            <include refid="selectByConditionSql"/>
+        ) tb
+    </select>
+
+    <sql id="selectByConditionSql">
+        SELECT DISTINCT
+            t0.uav_id,
+            t0.camera_name,
+            t0.stream_id,
+            t2.nest_id,
+            t2.`name` AS nest_name,
+            t2.uuid AS nest_uuid,
+            t2.type AS nest_type
+        FROM
+            <include refid="tableName"/> AS t0
+            LEFT JOIN base_uav_nest_ref t1 ON t1.uav_id = t0.uav_id AND t1.deleted = 0
+            LEFT JOIN base_nest t2 ON t2.nest_id = t1.nest_id  AND t2.deleted = 0
+                <if test="criteria.showStatus != null and criteria.showStatus !=''">
+                    AND t2.show_status = #{criteria.showStatus}
+                </if>
+            LEFT JOIN base_nest_account t3 ON t3.base_nest_id = t2.nest_id AND t3.deleted = 0
+                <if test="criteria.accountId != null and criteria.accountId !=''">
+                    AND t3.account_id = #{criteria.accountId}
+                </if>
+        WHERE
+            t0.deleted = 0
+            AND t3.base_nest_id IS NOT NULL
+            <include refid="whereCondition"/>
+    </sql>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.po.BaseUavEntityExt">
+            <include refid="selectByConditionSql"/>
+            <include refid="orderCondition"/>
+            <include refid="limitCondition"/>
+    </select>
+
+    <update id="updateByUavId" parameterType="com.imapcloud.nest.v2.dao.entity.BaseUavEntity">
+        UPDATE base_uav
+        <set>
+            <if test="null != uavNumber and '' != uavNumber">uav_number = #{uavNumber},</if>
+            <if test="null != rcNumber and '' != rcNumber">rc_number = #{rcNumber},</if>
+            <if test="null != cameraName and '' != cameraName">camera_name = #{cameraName},</if>
+            <if test="null != streamId and '' != streamId">stream_id = #{streamId},</if>
+            <if test="null != type and '' != type">type = #{type},</if>
+            <if test="null != which and '' != which">which = #{which},</if>
+            <if test="null != modifierId and '' != modifierId">modifier_id = #{modifierId},</if>
+            uav_pro = #{uavPro},
+            uav_name = #{uavName},
+            uav_type = #{uavType},
+            uav_pattern = #{uavPattern},
+            uav_sn = #{uavSn},
+            register_code = #{registerCode},
+            takeoff_weight = #{takeoffWeight}
+        </set>
+        WHERE uav_id = #{uavId}
+    </update>
+    <select id="selectUavByNestId" resultType="com.imapcloud.nest.v2.dao.entity.BaseUavEntity">
+        SELECT t1.uav_id      uav_id,
+               t1.uav_number  uav_number,
+               t1.rc_number   rc_name,
+               t1.camera_name camera_name,
+               t1.stream_id   stream_id,
+               t1.type        type,
+               t1.which       which
+        FROM base_uav t1,
+             base_uav_nest_ref t2
+        WHERE t1.uav_id = t2.uav_id
+          AND t2.nest_id = #{nestId}
+          AND t1.which = #{which}
+          AND t1.deleted = 0
+          AND t2.deleted = 0
+    </select>
+
+    <select id="selectUavTypeByNestId" resultType="string">
+        SELECT t1.type type
+        FROM base_uav t1,
+             base_uav_nest_ref t2
+        WHERE t1.uav_id = t2.uav_id
+          AND t2.nest_id = #{nestId}
+          AND t1.which = #{which}
+          AND t1.deleted = 0
+          AND t2.deleted = 0
+    </select>
+
+    <select id="selectUavByAppId" resultType="com.imapcloud.nest.v2.dao.entity.BaseUavEntity" parameterType="string">
+        SELECT t1.uav_id      uav_id,
+               t1.uav_number  uav_number,
+               t1.rc_number   rc_name,
+               t1.camera_name camera_name,
+               t1.stream_id   stream_id,
+               t1.type        type,
+               t1.which       which
+        FROM base_uav t1,
+             base_uav_app_ref t2
+        WHERE t1.uav_id = t2.uav_id
+          AND t2.app_id = #{appId}
+          AND t1.deleted = 0
+          AND t2.deleted = 0
+    </select>
+
+    <select id="batchSelectUavAndNestId" resultType="com.imapcloud.nest.v2.dao.po.out.BaseNestUavOutPO"
+            parameterType="list">
+        SELECT t2.nest_id nest_id,
+        t1.uav_id uav_id,
+        t1.uav_number uav_number,
+        t1.rc_number rc_number,
+        t1.camera_name camera_name,
+        t1.stream_id stream_id,
+        t1.type type,
+        t1.which which
+        FROM base_uav t1,
+        base_uav_nest_ref t2
+        WHERE t1.uav_id = t2.uav_id
+        AND t2.nest_id
+        IN
+        <foreach collection="nestIdList" open="(" close=")" index="i" item="nestId" separator=",">
+            #{nestId}
+        </foreach>
+        AND t1.deleted = 0
+        AND t2.deleted = 0
+    </select>
+
+    <select id="selectTypeByNestUuid" resultType="string">
+        SELECT t3.type
+        FROM base_nest t1
+                 LEFT JOIN base_uav_nest_ref t2 ON t1.nest_id = t2.nest_id
+                 LEFT JOIN base_uav t3 ON t3.uav_id = t2.uav_id
+        WHERE t1.uuid = #{nestUuid}
+          AND t3.which = #{which}
+          AND t1.deleted = 0
+          AND t2.deleted = 0
+          AND t3.deleted = 0;
+    </select>
+
+    <select id="selectUavStreamIdByNestId" resultType="string">
+        SELECT t1.stream_id
+        FROM base_uav t1,
+             base_nest t2,
+             base_uav_nest_ref t3
+        WHERE t1.uav_id = t3.uav_id
+          AND t2.nest_id = t3.nest_id
+          AND t2.nest_id = #{nestId}
+          AND t1.which = #{which}
+    </select>
+
+    <update id="deleteByUavIdList">
+        update base_uav set deleted=1, modifier_id = #{accountId}
+        where deleted=0 and uav_id in
+        <foreach collection="uavIdList" open="(" separator="," close=")" item="item">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="selectBatchStreamIdAndAppIdByAppIds" resultType="com.imapcloud.nest.v2.dao.po.out.AppStreamOutPO"
+            parameterType="list">
+        SELECT t3.stream_id stream_id, t1.app_id app_id
+        FROM base_app t1
+        LEFT JOIN base_uav_app_ref t2 ON t1.app_id = t2.app_id
+        LEFT JOIN base_uav t3 ON t2.uav_id = t3.uav_id
+        WHERE t1.deleted = 0
+        AND t2.deleted = 0
+        AND t3.deleted = 0
+        AND t1.app_id IN
+        <foreach collection="appIdList" open="(" close=")" separator="," item="appId">
+            #{appId}
+        </foreach>
+    </select>
+
+    <select id="selectTypeByDeviceId" resultType="string" parameterType="string">
+        SELECT t3.type
+        FROM base_app t1
+                 LEFT JOIN base_uav_app_ref t2 ON t1.app_id = t2.app_id
+                 LEFT JOIN base_uav t3 ON t2.uav_id = t3.uav_id
+        WHERE t1.device_id = #{deviceId}
+    </select>
+
+    <select id="selectUavStreamIdByAppId" resultType="string" parameterType="string">
+        SELECT t1.stream_id
+        FROM base_uav t1,
+             base_app t2,
+             base_uav_app_ref t3
+        WHERE t1.uav_id = t3.uav_id
+          AND t2.app_id = t3.app_id
+          AND t2.app_id = #{appId}
+    </select>
+
+    <select id="batchSelectUavAndAppId" resultType="com.imapcloud.nest.v2.dao.po.out.BaseAppUavOutPO"
+            parameterType="list">
+        SELECT t2.app_id app_id,
+        t1.uav_id uav_id,
+        t1.uav_number uav_number,
+        t1.rc_number rc_name,
+        t1.camera_name camera_name,
+        t1.stream_id stream_id,
+        t1.type type,
+        t1.which which
+        FROM base_uav t1,
+        base_uav_app_ref t2
+        WHERE t1.uav_id = t2.uav_id
+        AND t2.app_id
+        IN
+        <foreach collection="appIdList" open="(" close=")" index="i" item="appId" separator=",">
+            #{appId}
+        </foreach>
+        AND t1.deleted = 0
+        AND t2.deleted = 0
+    </select>
+
+    <select id="selectUavStreamIdByDeviceId" resultType="string" parameterType="string">
+        SELECT t1.stream_id
+        FROM base_uav t1,
+             base_app t2,
+             base_uav_app_ref t3
+        WHERE t1.uav_id = t3.uav_id
+          AND t2.app_id = t3.app_id
+          AND t2.device_id = #{deviceId}
+    </select>
+
+    <update id="updateStreamIdByUavId" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index">
+            update base_uav
+            set stream_id=#{item.streamId}
+            where uav_id = #{item.uavId} and deleted = 0
+        </foreach>
+    </update>
+
+    <select id="listUavs" resultType="com.imapcloud.nest.v2.dao.po.out.BaseNestUavOutPO">
+        select bu.uav_id, bunr.nest_id, bu.stream_id
+        from base_uav bu
+        left join base_uav_nest_ref bunr on bunr.uav_id  = bu.uav_id
+        left join base_nest bn on bn.nest_id = bunr.nest_id
+        where bn.nest_id = #{nestId} and bu.deleted = 0 and bunr.deleted = 0 and bn.deleted = 0
+    </select>
+
+    <select id="selectUavStreamByUav" resultType="java.lang.String">
+        SELECT
+            ms.stream_push_url
+        FROM
+            base_uav bu
+                LEFT JOIN media_stream ms ON bu.stream_id = ms.stream_id
+        WHERE
+            1 = 1
+        <if test="null != uavId and '' != uavId">and bu.uav_id = #{uavId} </if>
+        <if test="null != uavSn and '' != uavSn">and bu.uav_number = #{uavSn} </if>
+        order by bu.modified_time desc;
+    </select>
+</mapper>

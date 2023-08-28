@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataEquipmentPointRelMapper">
+
+    <insert id="saveBatch" parameterType="com.imapcloud.nest.v2.dao.entity.DataEquipmentPointRelEntity">
+        INSERT INTO `data_equipment_point_rel`
+        ( `id`,
+        `point_id`,
+        `equipment_id`,
+        `deleted`,
+        `creator_id`,
+        `created_time`,
+        `modifier_id`,
+        `modified_time`,
+        `org_code` )
+        VALUES
+        <foreach collection="list" item="bean" separator=",">
+            (
+            null,
+            #{bean.pointId},
+            #{bean.equipmentId},
+            #{bean.deleted},
+            #{bean.creatorId},
+            #{bean.createdTime},
+            #{bean.modifierId},
+            #{bean.modifiedTime},
+            #{bean.orgCode}
+            )
+        </foreach>
+    </insert>
+
+    <update id="deleteBatch" parameterType="java.lang.String">
+        update data_equipment_point_rel
+        set deleted="1"
+        where point_id in
+        <foreach collection="list" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+    </update>
+</mapper>

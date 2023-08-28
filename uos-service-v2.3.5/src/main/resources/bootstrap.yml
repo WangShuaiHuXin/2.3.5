@@ -1,0 +1,17 @@
+### 应用引导配置-主配置 ###
+## spring相关配置 ##
+spring:
+  application:
+    name: geoai-uos-service
+  profiles:
+    active: @profiles.active@
+  servlet:
+    multipart:
+      max-file-size: 5210MB
+      max-request-size: 5210MB
+
+## 服务端口配置 ##
+server:
+  port: 8181
+  servlet:
+    context-path: /nest-api

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.TaskFileMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.TaskFileEntity" >
+        <result column="id" property="id" />
+        <result column="task_file_id" property="taskFileId" />
+        <result column="file_url" property="fileUrl" />
+        <result column="file_name" property="fileName" />
+        <result column="file_md5" property="fileMd5" />
+        <result column="task_id" property="taskId" />
+        <result column="mission_id" property="missionId" />
+        <result column="creator_id" property="creatorId" />
+        <result column="created_time" property="createdTime" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        task_file_id,
+        file_url,
+        file_name,
+        file_md5,
+        task_id,
+        mission_id,
+        creator_id,
+        created_time,
+        modifier_id,
+        modified_time,
+        deleted
+    </sql>
+
+    <insert id="insertTaskFile" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.imapcloud.nest.v2.dao.entity.TaskFileEntity">
+        INSERT INTO task_file
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != taskFileId and '' != taskFileId">
+                task_file_id,
+            </if>
+            <if test="null != fileUrl and '' != fileUrl">
+                file_url,
+            </if>
+            <if test="null != fileName and '' != fileName">
+                file_name,
+            </if>
+            <if test="null != fileMd5 and '' != fileMd5">
+                file_md5,
+            </if>
+            <if test="null != taskId">
+                task_id,
+            </if>
+            <if test="null != missionId">
+                mission_id,
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                creator_id,
+            </if>
+            <if test="null != createdTime and '' != createdTime">
+                created_time,
+            </if>
+            <if test="null != modifierId and '' != modifierId">
+                modifier_id,
+            </if>
+            <if test="null != modifiedTime and '' != modifiedTime">
+                modified_time,
+            </if>
+            <if test="null != deleted and '' != deleted">
+                deleted
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="null != taskFileId and '' != taskFileId">
+                #{taskFileId},
+            </if>
+            <if test="null != fileUrl and '' != fileUrl">
+                #{fileUrl},
+            </if>
+            <if test="null != fileName and '' != fileName">
+                #{fileName},
+            </if>
+            <if test="null != fileMd5 and '' != fileMd5">
+                #{fileMd5},
+            </if>
+            <if test="null != taskId ">
+                #{taskId},
+            </if>
+            <if test="null != missionId ">
+                #{missionId},
+            </if>
+            <if test="null != creatorId and '' != creatorId">
+                #{creatorId},
+            </if>
+            <if test="null != createdTime and '' != createdTime">
+                #{createdTime},
+            </if>
+            <if test="null != modifierId and '' != modifierId">
+                #{modifierId},
+            </if>
+            <if test="null != modifiedTime and '' != modifiedTime">
+                #{modifiedTime},
+            </if>
+            <if test="null != deleted and '' != deleted">
+                #{deleted}
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="deleteTaskFile" >
+        update task_file
+        set deleted = 1
+        WHERE deleted = 0 and id = #{taskFileId}
+    </delete>
+
+    <delete id="deleteByTaskIdMissionIds">
+        update task_file
+        set deleted = 1
+        WHERE deleted = 0
+            <if test="null != taskId"> and task_id = #{taskId}</if>
+        <if test="null != missionId">and mission_id = #{missionId}</if>
+    </delete>
+
+    <select id="getAllByDeletedTaskFile" resultType="com.imapcloud.nest.v2.dao.entity.TaskFileEntity">
+        select
+        <include refid="Base_Column_List"/>
+        from task_file
+        where deleted = 1 and file_md5 != '' and file_md5 is not null
+    </select>
+
+    <update id="updateTaskFile" parameterType="com.imapcloud.nest.v2.dao.entity.TaskFileEntity">
+        UPDATE task_file
+        <set>
+            <if test="null != fileUrl and '' != fileUrl">file_url = #{fileUrl},</if>
+            <if test="null != fileName and '' != fileName">file_name = #{fileName},</if>
+            <if test="null != fileMd5">file_md5 = #{fileMd5},</if>
+            <if test="null != taskId">task_id = #{taskId},</if>
+            <if test="null != missionId">mission_id = #{missionId},</if>
+            <if test="null != creatorId and '' != creatorId">creator_id = #{creatorId},</if>
+            <if test="null != createdTime and '' != createdTime">created_time = #{createdTime},</if>
+            <if test="null != modifierId and '' != modifierId">modifier_id = #{modifierId},</if>
+            <if test="null != modifiedTime and '' != modifiedTime">modified_time = #{modifiedTime},</if>
+            <if test="null != deleted and '' != deleted">deleted = #{deleted}</if>
+        </set>
+        WHERE task_file_id = #{taskFileId}
+    </update>
+
+
+</mapper>

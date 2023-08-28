@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.BaseNestMapper">
+
+    <sql id="Base_Column_List">
+        nest_id
+        ,
+        uuid,
+        name,
+        number,
+        type,
+        latitude,
+        longitude,
+        altitude,
+        agl_altitude,
+        address,
+        region_id,
+        description,
+        show_status,
+        maintenance_status,
+        deploy_time,
+        mqtt_broker_id,
+        inner_stream_id,
+        outer_stream_id,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+
+    <select id="batchSelects" resultType="com.imapcloud.nest.v2.dao.entity.BaseNestEntity">
+        SELECT uuid,mqtt_broker_id, nest_id,type
+        FROM base_nest
+        WHERE deleted = 0 AND
+        nest_id IN
+        <foreach collection="nestIdList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="countByCondition" parameterType="com.imapcloud.nest.v2.dao.po.in.BaseNestInPO$ListInPO"
+            resultType="long">
+        select count(distinct(bn.nest_id))
+        from base_nest bn left join base_nest_org_ref no on bn.nest_id=no.nest_id
+        LEFT JOIN base_uav_nest_ref c ON c.nest_id = bn.nest_id
+        LEFT JOIN base_uav d on d.uav_id=c.uav_id
+        <include refid="where"/>
+    </select>
+
+    <select id="selectByCondition" parameterType="com.imapcloud.nest.v2.dao.po.in.BaseNestInPO$ListInPO"
+            resultType="com.imapcloud.nest.v2.dao.po.out.BaseNestOutPO$ListOutPO">
+        select distinct bn.nest_id nestId, bn.uuid uuid, bn.name name, bn.number number, bn.type type
+        , bn.region_id regionId, bn.modified_time, bn.latitude, bn.longitude, bn.altitude
+        from base_nest bn left join base_nest_org_ref no on bn.nest_id=no.nest_id
+        LEFT JOIN base_uav_nest_ref c ON c.nest_id = bn.nest_id
+        LEFT JOIN base_uav d on d.uav_id=c.uav_id
+        <include refid="where"/>
+        order by bn.modified_time desc
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </select>
+
+    <sql id="where">
+        where bn.deleted=0 and no.deleted=0
+        <bind name="userOrgCodeLike" value="criteria.userOrgCode + '%'"/>
+        and no.org_code like #{userOrgCodeLike}
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            <bind name="orgCodeLike" value="criteria.orgCode + '%'"/>
+            and no.org_code like #{orgCodeLike}
+        </if>
+        <if test="criteria.name != null and criteria.name != ''">
+            <bind name="nameLike" value="'%' + criteria.name + '%'"/>
+            and bn.name like #{nameLike}
+        </if>
+        <if test="criteria.number != null and criteria.number != ''">
+            <bind name="numberLike" value="'%' + criteria.number + '%'"/>
+            and bn.number like #{numberLike}
+        </if>
+        <if test="criteria.uuid != null and criteria.uuid != ''">
+            <bind name="uuidLike" value="'%' + criteria.uuid + '%'"/>
+            and bn.uuid like #{uuidLike}
+        </if>
+        <if test="criteria.uavType !=null ">
+            and d.uav_pattern=#{criteria.uavType}
+        </if>
+        <if test="criteria.uavModel !=null ">
+            and d.type=#{criteria.uavModel}
+        </if>
+        <if test="criteria.uavCate !=null ">
+            and d.uav_type=#{criteria.uavCate}
+        </if>
+        <if test="criteria.type != null">
+            and bn.type = #{criteria.type}
+        </if>
+        <if test="criteria.regionId != null and criteria.regionId != ''">
+            and bn.region_id = #{criteria.regionId}
+        </if>
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            <bind name="keywordLike" value="'%' + criteria.keyword + '%'"/>
+            AND (
+            bn.number = #{criteria.keyword}
+            OR bn.uuid = #{criteria.keyword}
+            OR bn.name LIKE #{keywordLike}
+            )
+        </if>
+        <if test="criteria.types != null and criteria.types.size() > 0">
+            and bn.type IN
+             <foreach collection="criteria.types" open="(" separator="," close=")" item="itemType">
+                 #{itemType}
+             </foreach>
+        </if>
+        <if test="criteria.showStatus != null">
+            and bn.show_status = #{criteria.showStatus}
+        </if>
+    </sql>
+
+    <insert id="insertNestBase" parameterType="com.imapcloud.nest.v2.dao.entity.BaseNestEntity">
+        insert into base_nest( nest_id, name, latitude, longitude, altitude, agl_altitude , address, region_id, deploy_time
+                             , created_time, creator_id, modifier_id)
+        values ( #{nestId}, #{name}, #{latitude}, #{longitude}, #{altitude}, #{aglAltitude} , #{address}, #{regionId}, #{deployTime}
+               , #{createdTime}, #{creatorId}, #{modifierId})
+    </insert>
+
+    <update id="updateByNestId" parameterType="com.imapcloud.nest.v2.dao.entity.BaseNestEntity">
+        UPDATE base_nest
+        <set>
+            <if test="null != uuid">uuid = #{uuid},</if>
+            <if test="null != name">name = #{name},</if>
+            <if test="null != number">number = #{number},</if>
+            <if test="null != type">type = #{type},</if>
+            <if test="null != latitude">latitude = #{latitude},</if>
+            <if test="null != longitude">longitude = #{longitude},</if>
+            <if test="null != altitude">altitude = #{altitude},</if>
+            <if test="null != aglAltitude">agl_altitude = #{aglAltitude},</if>
+            <if test="null != address">address = #{address},</if>
+            <if test="null != regionId">region_id = #{regionId},</if>
+            <if test="null != description">description = #{description},</if>
+            <if test="null != showStatus">show_status = #{showStatus},</if>
+            <if test="null != maintenanceStatus">maintenance_status = #{maintenanceStatus},</if>
+            <if test="null != deployTime">deploy_time = #{deployTime},</if>
+            <if test="null != mqttBrokerId">mqtt_broker_id = #{mqttBrokerId},</if>
+            <if test="null != innerStreamId">inner_stream_id = #{innerStreamId},</if>
+            <if test="null != outerStreamId">outer_stream_id = #{outerStreamId},</if>
+            <if test="null != modifierId">modifier_id = #{modifierId}</if>
+        </set>
+        WHERE nest_id = #{nestId}
+    </update>
+
+    <select id="selectNestByMissionId" resultType="com.imapcloud.nest.v2.dao.entity.BaseNestEntity" parameterType="int">
+        SELECT t1.nest_id, t1.uuid, t1.type
+        FROM base_nest t1
+                 LEFT JOIN task t2 ON t1.nest_id = t2.base_nest_id
+                 LEFT JOIN mission t3 ON t3.task_id = t2.id
+        WHERE t3.id = #{missionId}
+          AND t1.deleted = 0
+          AND t2.deleted = 0
+          AND t3.deleted = 0
+    </select>
+
+    <select id="selectNestByKeyword" resultType="com.imapcloud.nest.v2.dao.entity.BaseNestEntity">
+        SELECT
+        DISTINCT t0.nest_id, t0.uuid, t0.name, t0.type, t0.show_status, t0.region_id
+        FROM
+        base_nest AS t0
+        <if test="accountId != null">
+            INNER JOIN base_nest_account t1 ON t1.base_nest_id = t0.nest_id AND t1.deleted = 0
+            AND t1.account_id LIKE #{accountId}
+        </if>
+        WHERE
+        t0.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            <bind name="nameLike" value="'%' + keyword + '%'"/>
+            AND (
+            t0.number = #{keyword}
+            OR t0.uuid = #{keyword}
+            OR t0.name LIKE #{nameLike}
+            )
+        </if>
+    </select>
+
+    <update id="deleteByNestId">
+        update base_nest set deleted=1, modifier_id = #{modifierId}
+        where deleted=0 and nest_id = #{nestId}
+    </update>
+
+    <select id="selectByOrgCode" parameterType="string" resultType="com.imapcloud.nest.v2.dao.entity.BaseNestEntity">
+        select
+            bn.nest_id,
+            bn.uuid,
+            bn.name,
+            bn.number,
+            bn.type,
+            bn.latitude,
+            bn.longitude,
+            bn.altitude,
+            bn.agl_altitude,
+            bn.address,
+            bn.region_id,
+            bn.description,
+            bn.show_status,
+            bn.maintenance_status,
+            bn.deploy_time,
+            bn.mqtt_broker_id,
+            bn.inner_stream_id,
+            bn.outer_stream_id,
+            bn.created_time,
+            bn.modified_time,
+            bn.creator_id,
+            bn.modifier_id,
+            bn.deleted
+        from base_nest bn , base_nest_org_ref bnor
+        where bn.nest_id = bnor.nest_id
+          and bnor.org_code = #{orgCode}
+          and bn.deleted = 0
+          and bnor.deleted = 0
+    </select>
+
+    <select id="findNestByUavId" resultType="com.imapcloud.nest.v2.service.dto.out.BaseNestInfoOutDTO">
+        select * from base_nest bn where bn.nest_id =
+         (select bunr.nest_id  from base_uav_nest_ref bunr  where uav_id = #{uavId})
+    </select>
+
+    <!--大疆特殊，只有一个无人机-->
+    <select id="findDJIStreamId" resultType="java.lang.String">
+        select bu.stream_id  from base_nest bn
+                              left join base_uav_nest_ref bunr on bunr.nest_id = bn.nest_id
+                              left join base_uav bu on bu.uav_id = bunr.uav_id
+        where bn.nest_id  = #{nestId} and bn.deleted = 0 and bunr.deleted = 0 and bu.deleted = 0 limit 1
+    </select>
+
+    <select id="getNestUavInfoByIds"
+            resultType="com.imapcloud.nest.v2.manager.dataobj.out.BaseNestOutDO$BaseNestUavInfoOutDO">
+        SELECT
+        A.nest_id,
+        C.*
+        FROM
+        base_nest A
+        INNER JOIN base_uav_nest_ref B ON A.nest_id = B.nest_id
+        INNER JOIN base_uav C ON C.uav_id = B.uav_id
+        where A.nest_id IN
+        <foreach collection="ids" item="bean" separator="," open="(" close=")">
+            #{bean}
+        </foreach>
+    </select>
+
+    <select id="selectAllCondition" parameterType="com.imapcloud.nest.v2.dao.po.in.BaseNestInPO$ListInPO"
+            resultType="com.imapcloud.nest.v2.dao.po.out.BaseNestOutPO$ListOutPO">
+        select distinct bn.nest_id nestId, bn.uuid uuid, bn.name name, bn.number number, bn.type type
+        , bn.region_id regionId, bn.modified_time, bn.latitude, bn.longitude, bn.altitude
+        from base_nest bn left join base_nest_org_ref no on bn.nest_id=no.nest_id
+        LEFT JOIN base_uav_nest_ref c ON c.nest_id = bn.nest_id
+        LEFT JOIN base_uav d on d.uav_id=c.uav_id
+        <include refid="where"/>
+    </select>
+</mapper>

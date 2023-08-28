@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.PubMessageMapper">
+
+    <select id="getMessagePage" resultType="com.imapcloud.nest.pojo.vo.PubMessageVO">
+        SELECT p.*, u.user_id, u.read_state , u.create_time pushTime
+        FROM pub_message p
+        LEFT JOIN pub_user_message u ON p.id = u.message_id
+        WHERE p.deleted = 0
+        AND u.deleted = 0
+        <if test="messageState != null">
+            AND p.message_state = #{messageState}
+        </if>
+        <if test="messageType != null">
+            AND p.message_type = #{messageType}
+        </if>
+        <if test="messageClass != null">
+            AND p.message_class = #{messageClass}
+        </if>
+        <if test="messageId != null">
+            AND p.id = #{messageId}
+        </if>
+        <if test="userId != null">
+            AND u.account_id = #{userId}
+        </if>
+        <if test="messageTitle != null and messageTitle != ''">
+            AND p.message_title like concat('%',#{messageTitle},'%')
+        </if>
+    </select>
+
+    <select id="getDraftMessagePage" resultType="com.imapcloud.nest.pojo.vo.PubMessageVO">
+        SELECT p.*
+        FROM pub_message p
+        WHERE p.deleted = 0
+        <if test="messageState != null">
+            AND p.message_state = #{messageState}
+        </if>
+        <if test="messageType != null">
+            AND p.message_type = #{messageType}
+        </if>
+        <if test="messageClass != null">
+            AND p.message_class = #{messageClass}
+        </if>
+        <if test="messageId != null">
+            AND p.id = #{messageId}
+        </if>
+        <if test="userId != null">
+            AND p.creator_id = #{userId}
+        </if>
+        <if test="messageTitle != null and messageTitle !='' ">
+            AND p.message_title like concat('%',#{messageTitle},'%')
+        </if>
+    </select>
+
+    <select id="getMessageLogPage" resultType="com.imapcloud.nest.pojo.vo.PubMessageVO">
+        SELECT
+        p.*,
+        u.user_id, u.read_state , u.create_time pushTime
+        FROM pub_message p
+        LEFT JOIN pub_user_message u ON p.id = u.message_id
+        WHERE p.deleted = 0
+        AND u.deleted = 0
+        <if test="messageState != null">
+            AND p.message_state = #{messageState}
+        </if>
+        <if test="messageType != null">
+            AND p.message_type = #{messageType}
+        </if>
+        <if test="messageClass != null">
+            AND p.message_class = #{messageClass}
+        </if>
+        <if test="messageId != null">
+            AND p.id = #{messageId}
+        </if>
+        <if test="userId != null">
+            AND u.account_id = #{userId}
+        </if>
+    </select>
+
+    <select id="getDraftMessageLogPage" resultType="com.imapcloud.nest.pojo.vo.PubMessageVO">
+        SELECT p.*
+        FROM pub_message p
+        WHERE p.deleted = 0
+        <if test="messageState != null">
+            AND p.message_state = #{messageState}
+        </if>
+        <if test="messageType != null">
+            AND p.message_type = #{messageType}
+        </if>
+        <if test="messageClass != null">
+            AND p.message_class = #{messageClass}
+        </if>
+        <if test="messageId != null">
+            AND p.id = #{messageId}
+        </if>
+        <if test="userId != null">
+            AND p.creator_id = #{userId}
+        </if>
+    </select>
+</mapper>

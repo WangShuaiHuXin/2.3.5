@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MapManageMapper">
+
+    <select id="queryPage" resultType="com.imapcloud.nest.model.MapManageEntity">
+        select mm.id,
+               mm.name,
+               mm.url,
+               mm.checked,
+               mm.maximum_level,
+               mm.default_checked,
+               mm.no_manage,
+               mm.editable
+        from map_manage mm
+        <where>
+            <if test="params.orgCode != null and params.orgCode != ''">
+                and mm.org_code = #{params.orgCode}
+            </if>
+            <if test="params.checked != null and params.checked != ''">
+                and mm.checked = #{params.checked}
+            </if>
+            <if test="params.defaultChecked != null and params.defaultChecked != ''">
+                and mm.default_checked = #{params.defaultChecked}
+            </if>
+            <if test="params.noManage != null and params.noManage != ''">
+                and mm.no_manage = #{params.noManage}
+            </if>
+            <if test="params.editable != null and params.editable != ''">
+                and mm.editable = #{params.editable}
+            </if>
+        </where>
+    </select>
+
+    <select id="listAll" resultType="com.imapcloud.nest.model.MapManageEntity">
+        select mm.id,
+               mm.name,
+               mm.url,
+               mm.checked,
+               mm.maximum_level,
+               mm.default_checked,
+               mm.no_manage,
+               mm.editable,
+               mm.map_key
+        from map_manage mm
+        <where>
+            <if test="params.orgCode != null and params.orgCode != ''">
+                and mm.org_code = #{params.orgCode}
+            </if>
+            <if test="params.checked != null and params.checked != ''">
+                and mm.checked = #{params.checked}
+            </if>
+            <if test="params.defaultChecked != null and params.defaultChecked != ''">
+                and mm.default_checked = #{params.defaultChecked}
+            </if>
+            <if test="params.noManage != null and params.noManage != ''">
+                and mm.no_manage = #{params.noManage}
+            </if>
+            <if test="params.editable != null and params.editable != ''">
+                and mm.editable = #{params.editable}
+            </if>
+        </where>
+    </select>
+
+    <select id="byId" resultType="com.imapcloud.nest.model.MapManageEntity">
+        select mm.id,
+               mm.name,
+               mm.url,
+               mm.checked,
+               mm.maximum_level,
+               mm.default_checked,
+               mm.no_manage,
+               mm.editable
+        from map_manage mm
+        where mm.id = #{id}
+    </select>
+</mapper>

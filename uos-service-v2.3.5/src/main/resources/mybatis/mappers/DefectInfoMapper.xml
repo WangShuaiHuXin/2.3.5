@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.DefectInfoMapper">
+
+    <select id="getDefectInfoList" resultType="com.imapcloud.nest.model.DefectInfoEntity">
+        SELECT dtt.`code`, di.*
+        FROM defect_info di
+        LEFT JOIN defect_type_traffic dtt ON dtt.id = di.type_id
+        WHERE di.photo_id = #{photoId} AND di.deleted = 0
+        AND di.type_id IN
+        <foreach collection="typeIdList" open="(" close=")" separator="," item="typeId">
+            #{typeId}
+        </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.RegionMapper">
+
+    <select id="listRegionCountByNest" resultType="com.imapcloud.nest.model.RegionEntity">
+        SELECT n.region_id                    as id,
+               SUM(n.region_id = n.region_id) AS nestCount
+        FROM nest n
+        where n.deleted = 0
+        GROUP BY n.region_id
+    </select>
+
+    <select id="listIdAndNameByIdList" resultType="com.imapcloud.nest.model.RegionEntity">
+        SELECT id,name
+        FROM region
+        WHERE id IN
+        <foreach collection="idList" separator="," open="(" close=")" item="id">
+            #{id}
+        </foreach>
+        AND deleted = 0
+    </select>
+
+    <select id="getRegionPage" resultType="com.imapcloud.nest.model.RegionEntity">
+        SELECT *
+        FROM region
+        WHERE deleted = 0
+        AND (type != 0 OR type is NULL)
+        <if test="name != null and name != ''">
+        AND `name`like CONCAT(#{name},'%')
+        </if>
+        ORDER BY CONVERT(`name` USING GBK) asc
+    </select>
+</mapper>

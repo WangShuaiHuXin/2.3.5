@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.WorkOrderPlanMapper">
+
+    <select id="listOrderPlanOption" resultType="com.imapcloud.nest.v2.dao.po.out.NhOrderPlanOptionOutPO">
+SELECT
+	a.id planId,
+	a.NAME planName,
+	a.base_nest_id baseNestId
+FROM
+	inspection_plan a
+	INNER JOIN work_order_plan b
+WHERE
+	a.id = b.plan_id
+	AND order_id = #{orderId}
+	AND b.deleted = '0'
+	AND a.deleted= '0'
+	ORDER BY  a.create_time desc
+    </select>
+</mapper>

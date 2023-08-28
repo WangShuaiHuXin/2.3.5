@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.NestRtkMapper">
+
+    <select id="getExpireRtkList" resultType="com.imapcloud.nest.model.NestRtkEntity" >
+        SELECT n.nest_id AS nestId, n.nest_id AS baseNestId, n.`name` AS nestName,n.uuid AS nestUuid, nr.id, nr.expire_time
+        FROM nest_rtk nr
+        LEFT JOIN base_nest n ON n.nest_id = nr.base_nest_id
+        WHERE expire_time  &lt;= curdate() + interval #{num} day
+        AND nr.base_nest_id IN
+        <foreach collection="nestIdList" open="(" close=")" separator="," item="nestId">
+            #{nestId}
+        </foreach>
+    </select>
+
+    <update id="updateByNestId" parameterType="com.imapcloud.nest.model.NestRtkEntity">
+        update nest_rtk set enable=#{enable}, expire_time=#{expireTime}
+        where deleted=0 and base_nest_id=#{baseNestId}
+    </update>
+
+    <update id="deleteByNestId">
+        update nest_rtk set deleted=1
+        where deleted=0 and base_nest_id=#{nestId}
+    </update>
+</mapper>

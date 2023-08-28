@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisTopicProblemMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataAnalysisTopicProblemEntity" >
+        <result column="id" property="id" />
+        <result column="topic_problem_id" property="topicProblemId" />
+        <result column="topic_problem_name" property="topicProblemName" />
+        <result column="industry_type" property="industryType" />
+        <result column="industry_type" property="industryType" />
+        <result column="org_id" property="orgId" />
+        <result column="topic_key" property="topicKey" />
+        <result column="seq" property="seq" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        topic_problem_id,
+        topic_problem_name,
+        topic_industry_id,
+        industry_type,
+        org_id,
+        topic_key,
+        seq,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisTopicProblemEntity">
+        INSERT INTO data_analysis_topic_problem (topic_problem_id, topic_problem_name, industry_type, source
+            , org_code, topic_key, seq, creator_id, modifier_id)
+        VALUES
+        <foreach collection="entityList" separator="," item="bean">
+            (#{bean.topicProblemId}, #{bean.topicProblemName}, #{bean.industryType}, #{bean.source}, #{bean.orgCode}, #{bean.topicKey}
+            , #{bean.seq}, #{bean.creatorId},  #{bean.modifierId})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisTopicProblemEntity">
+        <foreach collection="entityList" separator=";" item="bean">
+            UPDATE data_analysis_topic_problem set topic_problem_name = #{bean.topicProblemName}, seq=#{bean.seq}
+            , modifier_id = #{bean.modifierId}, deleted = #{bean.deleted}
+            where topic_problem_id = #{bean.topicProblemId}
+        </foreach>
+    </update>
+</mapper>

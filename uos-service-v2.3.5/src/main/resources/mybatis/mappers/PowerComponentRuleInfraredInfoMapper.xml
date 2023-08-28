@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerComponentRuleInfraredInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.PowerComponentRuleInfraredInfoEntity" >
+        <result column="id" property="id" />
+        <result column="component_rule_id" property="componentRuleId" />
+        <result column="component_id" property="componentId" />
+        <result column="device_state" property="deviceState" />
+        <result column="infrared_rule_state" property="infraredRuleState" />
+        <result column="threshold" property="threshold" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        component_rule_id,
+        component_id,
+        device_state,
+        infrared_rule_state,
+        threshold,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+    <insert id="batchInsert">
+        insert into power_component_rule_infrared_info(component_rule_id, component_id, device_state
+            , infrared_rule_state, threshold, created_time, modified_time, creator_id, modifier_id, seq)
+        values
+        <foreach collection="entityList" item="item" separator=",">
+            (#{item.componentRuleId}, #{item.componentId}, #{item.deviceState}
+            , #{item.infraredRuleState}, #{item.threshold}, #{item.createdTime}
+            , #{item.modifiedTime}, #{item.creatorId}, #{item.modifierId}, #{item.seq})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate">
+        <foreach collection="entityList" item="entity" separator=";">
+            update power_component_rule_infrared_info set device_state=#{entity.deviceState}
+            , infrared_rule_state=#{entity.infraredRuleState}, threshold=#{entity.threshold}
+            , seq=#{entity.seq}, modifier_id=#{entity.modifierId}
+            where component_rule_id=#{entity.componentRuleId} and deleted = 0
+        </foreach>
+    </update>
+
+    <update id="deleteByComponentRuleIdList">
+        update power_component_rule_infrared_info set deleted = 1, modifier_id=#{accountId}
+        where deleted = 0 and component_rule_id in
+        <foreach collection="componentRuleIdList" open="(" item="componentRuleIdItem" separator="," close=")">
+            #{componentRuleIdItem}
+        </foreach>
+    </update>
+
+    <update id="deleteByComponentId">
+        update power_component_rule_infrared_info set deleted = 1, modifier_id=#{accountId}
+        where deleted = 0 and component_id=#{componentId}
+    </update>
+</mapper>

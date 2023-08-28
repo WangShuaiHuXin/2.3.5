@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisTopicIndustryMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataAnalysisTopicIndustryEntity" >
+        <result column="id" property="id" />
+        <result column="industry_type" property="industryType" />
+        <result column="topic_key" property="topicKey" />
+        <result column="seq" property="seq" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisTopicIndustryEntity">
+        INSERT INTO data_analysis_topic_industry (org_code, topic_key, industry_type, seq, creator_id, modifier_id)
+        VALUES 
+        <foreach collection="entityList" item="entity" separator=",">
+            (#{entity.orgCode}, #{entity.topicKey}, #{entity.industryType}, #{entity.seq}, #{entity.creatorId}, #{entity.modifierId})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisTopicIndustryEntity">
+        <foreach collection="entityList" item="entity" separator=";">
+            update data_analysis_topic_industry set topic_industry_name=#{entity.topicIndustryName}, seq=#{entity.seq}
+            , modifier_id=#{entity.modifierId}, deleted=#{entity.deleted} where topic_industry_id=#{entity.industryType}
+        </foreach>
+    </update>
+</mapper>

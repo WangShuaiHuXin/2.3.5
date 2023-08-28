@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.DataAnalysisMarkMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkEntity">
+        <result column="id" property="id"/>
+        <result column="mark_id" property="markId"/>
+        <result column="photo_id" property="photoId"/>
+        <result column="detail_id" property="detailId"/>
+        <result column="rec_x" property="recX"/>
+        <result column="rec_y" property="recY"/>
+        <result column="rec_width" property="recWidth"/>
+        <result column="rec_height" property="recHeight"/>
+        <result column="rel_x" property="relX"/>
+        <result column="rel_y" property="relY"/>
+        <result column="cut_width" property="cutWidth"/>
+        <result column="cut_height" property="cutHeight"/>
+        <result column="pic_scale" property="picScale"/>
+        <result column="mark_state" property="markState"/>
+        <result column="exist_mark" property="existMark"/>
+        <result column="ai_mark" property="aiMark"/>
+        <result column="mark_image_path" property="markImagePath"/>
+        <result column="thum_image_path" property="thumImagePath"/>
+        <result column="addr_image_path" property="addrImagePath"/>
+        <result column="addr" property="addr"/>
+        <result column="topic_level_id" property="topicLevelId"/>
+        <result column="industry_type" property="industryType"/>
+        <result column="topic_problem_id" property="topicProblemId"/>
+        <result column="mark_no" property="markNo"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="modifier_id" property="modifierId"/>
+        <result column="modified_time" property="modifiedTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+                mark_id,
+                photo_id,
+                detail_id,
+                rec_x,
+                rec_y,
+                rec_width,
+                rec_height,
+                rel_x,
+                rel_y,
+                cut_width,
+                cut_height,
+                pic_scale,
+                mark_state,
+                exist_mark,
+                ai_mark,
+                mark_image_path,
+                thum_image_path,
+                addr_image_path,
+                addr,
+                topic_level_id,
+                topic_industry_id,
+                topic_problem_id,
+                mark_no,
+                creator_id,
+                created_time,
+                modifier_id,
+                modified_time,
+                deleted
+    </sql>
+
+    <sql id="tableName">data_analysis_mark</sql>
+
+    <!-- 左连接查询SQL -->
+    <sql id="leftJoinPlanSql">
+    </sql>
+
+    <!-- 分页查询限制条件 -->
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <!-- 分页查询排序条件 -->
+    <sql id="orderCondition">
+        ORDER BY t0.modified_time DESC , t0.id DESC
+    </sql>
+
+    <!-- 分页查询实际条件 -->
+    <sql id="whereCondition">
+        <if test="criteria.detailId != null and criteria.detailId != ''">
+            AND t0.detail_id = #{criteria.detailId}
+        </if>
+        <if test="criteria.markState != null">
+            AND t0.mark_state = #{criteria.markState}
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(*)
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+    <select id="queryDeleteDataById" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkEntity">
+        SELECT
+        t0.mark_image_path
+        ,t0.thum_image_path
+        ,t0.addr_image_path
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        <!--        t0.deleted = 1-->
+        <if test="markIds != null and markIds.size() > 0">
+            <!--            and -->
+            t0.mark_id in
+            <foreach collection="markIds" item="markId" open="(" separator="," close=")">
+                #{markId}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="queryDeleteDataByDetailId" resultType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkEntity">
+        SELECT
+        t0.mark_id
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        WHERE
+        <if test="details != null and details.size() > 0">
+            t0.detail_id in
+            <foreach collection="details" item="detail" open="(" separator="," close=")">
+                #{detail}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="queryDetailMark" resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisDetailMarkOutPO">
+        SELECT
+        t0.*
+        ,d.id as detailIndexId
+        ,d.photo_name
+        ,d.image_path as originalImagePath
+        ,d.mission_record_id
+        ,d.src_data_type
+        ,d.longitude as picLongitude
+        ,d.latitude as picLatitude
+        ,d.photo_create_time
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        left join
+        data_analysis_center_detail d
+        on t0.detail_id = d.center_detail_id
+        WHERE
+        t0.deleted = 0
+        and d.deleted = 0
+        <if test="detailsIds != null and detailsIds.size() > 0">
+            and t0.detail_id in
+            <foreach collection="detailsIds" item="detailsId" open="(" separator="," close=")">
+                #{detailsId}
+            </foreach>
+        </if>
+    </select>
+
+    <update id="updateEntity" parameterType="com.imapcloud.nest.v2.dao.entity.DataAnalysisMarkEntity">
+        UPDATE data_analysis_mark
+        <set>
+            <if test="null != photoId and '' != photoId">photo_id = #{photoId},</if>
+            <if test="null != detailId and '' != detailId">detail_id = #{detailId},</if>
+            <if test="null != recX and '' != recX">rec_x = #{recX},</if>
+            <if test="null != recY and '' != recY">rec_y = #{recY},</if>
+            <if test="null != recWidth and '' != recWidth">rec_width = #{recWidth},</if>
+            <if test="null != recHeight and '' != recHeight">rec_height = #{recHeight},</if>
+            <if test="null != relX and '' != relX">rel_x = #{relX},</if>
+            <if test="null != relY and '' != relY">rel_y = #{relY},</if>
+            <if test="null != cutWidth and '' != cutWidth">cut_width = #{cutWidth},</if>
+            <if test="null != cutHeight and '' != cutHeight">cut_height = #{cutHeight},</if>
+            <if test="null != picScale and '' != picScale">pic_scale = #{picScale},</if>
+            <if test="null != markState and '' != markState">mark_state = #{markState},</if>
+            <if test="null != existMark and '' != existMark">exist_mark = #{existMark},</if>
+            <if test="null != aiMark and '' != aiMark">ai_mark = #{aiMark},</if>
+            <if test="null != markImagePath and '' != markImagePath">mark_image_path = #{markImagePath},</if>
+            <if test="null != thumImagePath and '' != thumImagePath">thum_image_path = #{thumImagePath},</if>
+            <if test="null != addrImagePath and '' != addrImagePath">addr_image_path = #{addrImagePath},</if>
+            <if test="null != addr and '' != addr">addr = #{addr},</if>
+            <if test="null != topicLevelId and '' != topicLevelId">topic_level_id = #{topicLevelId},</if>
+            <if test="null != industryType">industry_type = #{industryType},</if>
+            <if test="null != aiProblemName and '' != aiProblemName">ai_problem_name = #{aiProblemName},</if>
+            <if test="null != topicProblemId and '' != topicProblemId">topic_problem_id = #{topicProblemId},</if>
+            <if test="null != markNo and '' != markNo">mark_no = #{markNo},</if>
+            <if test="null != modifierId and '' != modifierId">modifier_id = #{modifierId},</if>
+            <if test="null != deleted and '' != deleted">deleted = #{deleted}</if>
+        </set>
+        WHERE mark_id = #{markId}
+    </update>
+
+    <select id="queryMarks" resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisDetailMarkOutPO">
+        SELECT
+        t0.*
+        ,d.id as detailIndexId
+        ,d.photo_name
+        ,d.image_path as originalImagePath
+        ,d.mission_record_id
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        left join
+        data_analysis_center_detail d
+        on t0.detail_id = d.center_detail_id
+        WHERE
+        t0.deleted = 0
+        and d.deleted = 0
+        <if test="markQueryCriteriaPO.detailId != null and markQueryCriteriaPO.detailId!=''">
+            and t0.detail_id = #{markQueryCriteriaPO.detailId}
+        </if>
+        <if test="markQueryCriteriaPO.photoId != null and markQueryCriteriaPO.photoId!=''">
+            and d.photo_id = #{markQueryCriteriaPO.photoId}
+        </if>
+        <if test="markQueryCriteriaPO.markId != null and markQueryCriteriaPO.markId!=''">
+            and t0.mark_id = #{markQueryCriteriaPO.markId}
+        </if>
+    </select>
+
+    <select id="queryDetailMarkForSinglePic" resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisDetailMarkOutPO">
+        SELECT
+        t0.*
+        ,d.id as detailIndexId
+        ,d.photo_name
+        ,d.image_path as originalImagePath
+        ,d.mission_record_id
+        ,d.src_data_type
+        ,d.longitude as picLongitude
+        ,d.latitude as picLatitude
+        ,d.photo_create_time photoCreateTime
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        left join
+        data_analysis_center_detail d
+        on t0.detail_id = d.center_detail_id
+        WHERE
+        t0.deleted = 0
+        and d.deleted = 0
+        and d.push_state = 1
+        and d.photo_state = 1
+        and ((t0.mark_image_path is null or t0.mark_image_path = '')
+        or (t0.thum_image_path is null or t0.thum_image_path = ''))
+    </select>
+
+    <select id="queryDetailMarkForResult" resultType="com.imapcloud.nest.v2.dao.po.out.DataAnalysisDetailMarkOutPO">
+        SELECT
+        t0.*
+        ,d.id as detailIndexId
+        ,d.photo_name
+        ,d.image_path as originalImagePath
+        ,d.mission_record_id
+        ,d.src_data_type
+        ,d.longitude as picLongitude
+        ,d.latitude as picLatitude
+        ,d.photo_create_time
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        left join
+        data_analysis_center_detail d
+        on t0.detail_id = d.center_detail_id
+        left join
+        data_analysis_result r
+        on t0.mark_id = r.mark_id
+        WHERE
+        t0.deleted = 0
+        and d.deleted = 0
+        and d.push_state = 1
+        and d.photo_state = 1
+        and r.result_id is null
+    </select>
+
+    <update id="updateMarkByMarkId" parameterType="com.imapcloud.nest.v2.dao.po.in.DataAnalysisMarkUpdateInPO">
+        UPDATE data_analysis_mark
+        SET
+        <if test="addrImagePath != null and  addrImagePath != ''">
+            addr_image_path= #{addrImagePath},
+        </if>
+        <if test="addr != null and  addr != ''">
+            addr = #{addr},
+        </if>
+        <if test="longitude != null and  longitude != ''">
+            longitude =#{longitude},
+        </if>
+        <if test="latitude != null and  latitude != ''">
+            latitude = #{latitude},
+        </if>
+        <if test="topicLevelId !=null  and topicLevelId != ''">
+            topic_level_id=#{topicLevelId},
+        </if>
+        modified_time=NOW()
+        WHERE
+        mark_id = #{markId}
+    </update>
+</mapper>

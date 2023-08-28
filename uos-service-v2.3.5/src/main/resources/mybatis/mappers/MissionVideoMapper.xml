@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.MissionVideoMapper">
+
+
+    <update id="deleteByRecordId" parameterType="java.util.List">
+        UPDATE mission_video SET deleted = 1 WHERE mission_records_id IN
+        <foreach collection="recordIdList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getNameByIdList" resultType="string">
+        SELECT name FROM mission_video WHERE
+        `type` in
+        <foreach collection="types" item="type" open="(" close=")" separator=",">
+            #{type}
+        </foreach>
+        AND id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getNameAndUrlByIdList" resultType="java.util.Map">
+        SELECT name,video_url FROM mission_video WHERE
+        `type` in
+        <foreach collection="types" item="type" open="(" close=")" separator=",">
+            #{type}
+        </foreach>
+        AND id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getInspect" resultType="java.util.Map">
+        SELECT
+        DATE_FORMAT( create_time, '%Y-%m-%d' ) AS oneDay,
+        count( 1 ) AS num
+        FROM
+        mission_video
+        WHERE
+        deleted = 0
+        <if test="missionRecordsIds != null and missionRecordsIds.size() > 0">
+            and mission_records_id in
+            <foreach collection="missionRecordsIds" item="missionRecordsId" index="index" open="(" close=")"
+                     separator=",">
+                #{missionRecordsId}
+            </foreach>
+        </if>
+        GROUP BY
+        oneDay
+    </select>
+    <select id="getMissionRecords" resultType="com.imapcloud.nest.model.MissionRecordsEntity">
+        SELECT
+        distinct mr.*,t.`name` as task_name,t.id as task_id
+        FROM
+        mission_records mr
+        INNER JOIN mission_video mv ON mr.id = mv.mission_records_id
+        INNER JOIN mission m on mr.mission_id = m.id
+        INNER JOIN task t on m.task_id = t.id
+        WHERE
+        mr.deleted = 0
+        AND mv.deleted = 0
+        AND m.deleted = 0
+        AND t.deleted = 0
+        <if test="(startTime !=null and startTime != '') and (endTime != null and endTime != '' )">
+            and Date(mr.create_time) between #{startTime} and #{endTime}
+        </if>
+        order by mr.create_time desc
+    </select>
+
+    <select id="getVideoUrlByIdList" resultType="com.imapcloud.nest.v2.manager.dataobj.FileUrlMappingDO">
+        SELECT name AS originName, video_url AS storageUri FROM mission_video WHERE id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="getVideoNameByRecordId" resultType="java.lang.String">
+        SELECT name FROM mission_video WHERE mission_records_id = #{recordId}
+        AND `type` in
+        <foreach collection="types" item="type" open="(" close=")" separator=",">
+            #{type}
+        </foreach>
+        AND deleted = 0
+    </select>
+    <select id="getVideoNameAndUrlByRecordId" resultType="java.util.Map">
+        SELECT name,video_url FROM mission_video WHERE mission_records_id = #{recordId}
+        AND `type` in
+        <foreach collection="types" item="type" open="(" close=")" separator=",">
+            #{type}
+        </foreach>
+        AND deleted = 0
+    </select>
+    <select id="getVideoTaskPage" resultType="com.imapcloud.nest.model.MissionVideoEntity">
+        SELECT
+        mv.*,
+        t.name as task_name
+        FROM
+        mission_video mv,
+        mission m,
+        task t
+        WHERE
+        mv.mission_id = m.id
+        and m.task_id = t.id
+        AND mv.deleted = 0
+        AND m.deleted = 0
+        and t.data_type is not null
+        and m.task_id in (
+        SELECT
+        t.id
+        FROM
+        task t,
+        sys_task_tag stt,
+        sys_tag st
+        WHERE
+        t.id = stt.task_id
+        AND stt.tag_id = st.id
+        AND t.deleted = 0
+        AND stt.deleted = 0
+        AND st.id in
+        <foreach collection="params.tagList" item="tagId" open="(" close=")" separator=",">
+            #{tagId}
+        </foreach>
+        )
+        <if test="(params.startTime !=null and params.startTime != '') and (params.endTime != null and params.endTime != '' )">
+            and Date(mv.create_time) between #{params.startTime} and #{params.endTime}
+        </if>
+        ORDER BY
+        mv.create_time DESC
+    </select>
+    <select id="getVideoByRecordId" resultType="com.imapcloud.nest.model.MissionVideoEntity">
+        <bind name="orgCodeLike" value="orgCode + '%'"/>
+        SELECT * FROM mission_video WHERE mission_records_id = #{recordId} AND deleted = 0
+        and org_code LIKE #{orgCodeLike}
+        order by create_time DESC
+    </select>
+    <select id="getAllVideoByRecordId" resultType="com.imapcloud.nest.model.MissionVideoEntity">
+        <bind name="orgCodeLike" value="orgCode + '%'"/>
+        SELECT * FROM mission_video WHERE mission_records_id = #{recordId} AND deleted = 0
+        and org_code LIKE #{orgCodeLike}
+        order by create_time DESC
+    </select>
+    <select id="queryDeleteList" resultType="com.imapcloud.nest.model.MissionVideoEntity">
+        SELECT *
+        FROM mission_video
+        WHERE deleted = 1 and physics_delete = 0
+        order by id desc
+        limit 100;
+    </select>
+
+    <update id="updatePhysicsDelete">
+        update mission_video set physics_delete = 1
+        where deleted = 1 and id in
+        <foreach collection="idList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="updateVideoUrl">
+        <foreach collection="entityList" item="entity" separator=";">
+            update mission_video set video_url=#{entity.videoUrl}
+            , srt_url=#{entity.srtUrl}, video_thumbnail=#{entity.videoThumbnail}
+            where id=#{entity.id}
+        </foreach>
+    </update>
+</mapper>

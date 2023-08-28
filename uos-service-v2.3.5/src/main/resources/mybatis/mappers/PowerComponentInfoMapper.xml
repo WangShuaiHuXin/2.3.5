@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.v2.dao.mapper.PowerComponentInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.imapcloud.nest.v2.dao.entity.PowerComponentInfoEntity" >
+        <result column="id" property="id" />
+        <result column="component_id" property="componentId" />
+        <result column="component_name" property="componentName" />
+        <result column="component_picture" property="componentPicture" />
+        <result column="component_picture_name" property="componentPictureName" />
+        <result column="org_code" property="orgCode" />
+        <result column="equipment_type" property="equipmentType" />
+        <result column="description" property="description" />
+        <result column="analysis_type" property="analysisType" />
+        <result column="created_time" property="createdTime" />
+        <result column="modified_time" property="modifiedTime" />
+        <result column="creator_id" property="creatorId" />
+        <result column="modifier_id" property="modifierId" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        component_id,
+        component_name,
+        component_picture,
+        component_picture_name,
+        org_code,
+        equipment_type,
+        description,
+        analysis_type,
+        created_time,
+        modified_time,
+        creator_id,
+        modifier_id,
+        deleted
+    </sql>
+    <update id="updateByComponentId" parameterType="com.imapcloud.nest.v2.dao.entity.PowerComponentInfoEntity">
+        UPDATE power_component_info set component_name = #{componentName}, component_picture = #{componentPicture}
+            , component_picture_name = #{componentPictureName}, equipment_type = #{equipmentType}
+            , description = #{description}, analysis_type = #{analysisType}, modifier_id = #{modifierId}
+        WHERE component_id = #{componentId}
+    </update>
+
+    <insert id="insertOne" parameterType="com.imapcloud.nest.v2.dao.entity.PowerComponentInfoEntity">
+        insert power_component_info(component_id, component_name, component_picture, component_picture_name
+            , equipment_type, description, analysis_type, creator_id, modifier_id, created_time, org_code)
+        values (#{componentId}, #{componentName}, #{componentPicture}, #{componentPictureName}, #{equipmentType}
+            , #{description}, #{analysisType}, #{creatorId}, #{modifierId}, #{createdTime}, #{orgCode})
+    </insert>
+
+    <update id="deleteByComponentId">
+        update power_component_info set modifier_id = #{accountId}, deleted = 1
+        where deleted = 0 and component_id=#{componentId}
+    </update>
+
+    <sql id="listWhere">
+        where deleted = 0 and org_code=#{orgCode}
+        <if test="analysisType != null">
+            and analysis_type <![CDATA[ & ]]> #{analysisType}=#{analysisType}
+        </if>
+        <if test="equipmentType != null and '' != equipmentType">
+            <bind name="equipmentTypeLike" value="'%' + equipmentType + '%'"/>
+            and equipment_type like #{equipmentTypeLike}
+        </if>
+        <if test="componentName != null and '' != componentName">
+            <bind name="componentNameLike" value="'%' + componentName + '%'"/>
+            and component_name like #{componentNameLike}
+        </if>
+        <if test="start != null">
+            and created_time <![CDATA[ >= ]]> #{start}
+        </if>
+        <if test="end != null">
+            and created_time <![CDATA[ <= ]]> #{end}
+        </if>
+    </sql>
+
+    <select id="listSum" parameterType="com.imapcloud.nest.v2.dao.po.in.PowerComponentInfoInPO$ListInPO" resultType="_long">
+        select count(1) from power_component_info
+        <include refid="listWhere" />
+    </select>
+
+    <select id="listPage" parameterType="com.imapcloud.nest.v2.dao.po.in.PowerComponentInfoInPO$ListInPO"
+            resultType="com.imapcloud.nest.v2.dao.entity.PowerComponentInfoEntity">
+        select <include refid="Base_Column_List" />
+        from power_component_info
+        <include refid="listWhere" />
+        order by created_time desc, id desc
+        limit #{offset}, #{limit}
+    </select>
+</mapper>

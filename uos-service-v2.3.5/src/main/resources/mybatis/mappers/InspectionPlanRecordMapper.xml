@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imapcloud.nest.mapper.InspectionPlanRecordMapper">
+
+    <sql id="tableName">inspection_plan_record</sql>
+
+    <sql id="leftJoinPlanSql">
+        LEFT JOIN inspection_plan t1 ON t1.id = t0.plan_id
+    </sql>
+
+    <sql id="limitCondition">
+        LIMIT #{restrict.limit} OFFSET #{restrict.offset}
+    </sql>
+
+    <sql id="orderCondition">
+        ORDER BY
+        <if test="criteria.sort == null or criteria.sort == 0">
+            t0.modify_time
+        </if>
+        <if test="criteria.sort != null and criteria.sort == 1">
+            t0.schedule_exec_time
+        </if>
+        <if test="criteria.sort != null and criteria.sort == 2">
+            t0.actual_exec_time
+        </if>
+        <if test="criteria.asc == true">
+            ASC
+        </if>
+        <if test="criteria.asc == false">
+            DESC
+        </if>
+    </sql>
+
+    <sql id="whereCondition">
+        <if test="criteria.startTime != null">
+            AND t0.schedule_exec_time &gt;= #{criteria.startTime}
+        </if>
+        <if test="criteria.endTime != null">
+            AND t0.schedule_exec_time &lt;= #{criteria.endTime}
+        </if>
+        <if test="criteria.execStates != null and criteria.execStates.size() > 0">
+            AND t0.exec_state IN
+            <foreach collection="criteria.execStates" open="(" item="execState" separator="," close=")">
+                #{execState}
+            </foreach>
+        </if>
+        <!-- 非主表条件 -->
+        <if test="criteria.planName != null and criteria.planName != ''">
+            <bind name="planNameLike" value="'%' + criteria.planName + '%'"/>
+            AND t1.name LIKE #{planNameLike}
+        </if>
+        <if test="criteria.baseNestId != null and criteria.baseNestId != ''">
+            AND t1.base_nest_id = #{criteria.baseNestId}
+        </if>
+        <if test="criteria.filterClosedPlan == true">
+            AND t1.state = 1
+        </if>
+        <if test="criteria.orgCode != null and criteria.orgCode != ''">
+            <bind name="orgCodeLike" value="criteria.orgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="criteria.baseNestIds !=null  and  criteria.baseNestIds.size()>0">
+            AND t0.base_nest_id in
+            <foreach collection="criteria.baseNestIds" item="baseNestId" open="(" close=")" separator=",">
+                #{baseNestId}
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="countByCondition" resultType="long">
+        SELECT
+        COUNT(*)
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        <include refid="leftJoinPlanSql"/>
+        WHERE t0.deleted = 0
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="selectByCondition" resultType="com.imapcloud.nest.model.InspectionPlanRecordEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        <include refid="leftJoinPlanSql"/>
+        WHERE
+        t0.deleted = 0
+        <include refid="whereCondition"/>
+        <include refid="orderCondition"/>
+        <include refid="limitCondition"/>
+    </select>
+
+    <select id="getOpenedIprCalendars" resultType="com.imapcloud.nest.model.InspectionPlanRecordEntity">
+        SELECT
+        t0.*
+        FROM
+        <include refid="tableName"/>
+        AS t0
+        LEFT JOIN inspection_plan t1 ON t1.id = t0.plan_id
+        WHERE
+        t0.deleted = 0
+        AND t1.state = 1
+        <if test="from != null">
+            AND t0.schedule_exec_time &gt;= #{from}
+        </if>
+        <if test="to != null">
+            AND t0.schedule_exec_time &lt;= #{to}
+        </if>
+        <if test="nestId != null">
+            AND t0.base_nest_id = #{nestId}
+        </if>
+        <if test="orgCode != null and orgCode != ''">
+            <bind name="orgCodeLike" value="orgCode + '%'"/>
+            AND t0.org_code LIKE #{orgCodeLike}
+        </if>
+        <if test="baseNestIds !=null and  baseNestIds.size()>0">
+            AND t0.base_nest_id IN
+            <foreach collection="baseNestIds" item="baeseNestId" open="(" close=")" separator=",">
+                #{baeseNestId}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>
